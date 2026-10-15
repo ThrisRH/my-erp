@@ -1,0 +1,51 @@
+<?php $summary = $dashboard['summary']; ?>
+<section class="pf-finance-summary" aria-label="Tóm tắt tài chính tháng <?= $this->escapeHtmlAttr($month->format('m/Y')) ?>">
+    <div class="pf-finance-summary-main">
+        <span><span data-i18n="finance.balance">Dòng tiền còn lại</span> · <?= $this->escapeHtml($month->format('m/Y')) ?></span>
+        <strong><?= number_format((float) $summary['balance'], 0, ',', '.') ?> <small>₫</small></strong>
+        <p data-i18n="finance.balanceDescription">Tổng thu trừ tổng chi trong tháng đang xem.</p>
+    </div>
+    <div class="pf-finance-summary-flow">
+        <div><span data-i18n="finance.moneyIn">Tiền vào</span><strong><?= number_format((float) $summary['income'], 0, ',', '.') ?> ₫</strong></div>
+        <div><span data-i18n="finance.moneyOut">Tiền ra</span><strong><?= number_format((float) $summary['expense'], 0, ',', '.') ?> ₫</strong></div>
+    </div>
+</section>
+<?php
+$spending = $dashboard['categorySpending'] ?? [];
+$totalSpending = array_sum(array_map(static fn (array $item): float => (float) $item['amount'], $spending));
+$donutPalette = ['#366da8', '#6c8eae', '#90a4b8', '#4b7f78', '#9a7650', '#806d9f'];
+$offset = 0.0;
+$segments = [];
+foreach ($spending as $index => $item) {
+    $portion = $totalSpending > 0 ? (float) $item['amount'] / $totalSpending * 100 : 0;
+    $color = $donutPalette[$index % count($donutPalette)];
+    $segments[] = sprintf('%s %.2f%% %.2f%%', $color, $offset, $offset + $portion);
+    $spending[$index]['percent'] = $portion;
+    $spending[$index]['color'] = $color;
+    $offset += $portion;
+}
+?>
+<section class="pf-panel pf-spending-chart" aria-label="Cơ cấu chi tiêu theo danh mục">
+    <div class="pf-section-head"><div><p class="pf-section-kicker">Cơ cấu chi tiêu</p><h2>Chi tiêu theo danh mục</h2></div><span class="pf-chart-total"><?= number_format($totalSpending, 0, ',', '.') ?> ₫</span></div>
+    <?php if ($spending === []): ?><p class="pf-empty" data-i18n="finance.noData">Chưa có dữ liệu trong kỳ này.</p><?php else: ?>
+        <div class="pf-donut-layout"><div class="pf-donut" style="--donut-segments: <?= $this->escapeHtmlAttr(implode(', ', $segments)) ?>"><span><?= number_format($totalSpending / 1000000, 1, ',', '.') ?><small>triệu ₫</small></span></div><div class="pf-donut-legend">
+            <?php foreach ($spending as $item): ?><div><i style="--legend-color: <?= $this->escapeHtmlAttr($item['color']) ?>"></i><span><?= $this->escapeHtml($item['name']) ?></span><strong><?= number_format((float) $item['percent'], 1, ',', '.') ?>%</strong></div><?php endforeach; ?>
+        </div></div>
+    <?php endif; ?>
+</section>
+<div class="pf-chart-grid">
+    <?php foreach (['weeklyTrend' => ['Theo tuần trong tháng', 'Tuần'], 'monthlyTrend' => ['Theo tháng trong năm', 'Tháng']] as $key => $meta): ?>
+        <?php $rows = $dashboard[$key]; $max = 1; foreach ($rows as $row) { $max = max($max, (float) $row['income'], (float) $row['expense']); } ?>
+        <section class="pf-panel pf-chart <?= $key === 'weeklyTrend' ? 'pf-chart-primary' : 'pf-chart-secondary' ?>" aria-label="<?= $meta[0] ?>"><div class="pf-section-head"><div><p class="pf-section-kicker" data-i18n="<?= $key === 'weeklyTrend' ? 'finance.monthlyAnalysis' : 'finance.yearlyView' ?>"><?= $key === 'weeklyTrend' ? 'Phân tích tháng' : 'Góc nhìn cả năm' ?></p><h2 data-i18n="<?= $key === 'weeklyTrend' ? 'finance.weeklyTrend' : 'finance.monthlyTrend' ?>"><?= $meta[0] ?></h2></div><span class="pf-chart-legend"><i></i> <span data-i18n="finance.income">Thu</span> <i></i> <span data-i18n="finance.expense">Chi</span></span></div>
+            <?php if ($rows === []): ?><p class="pf-empty" data-i18n="finance.noData">Chưa có dữ liệu trong kỳ này.</p><?php else: ?>
+                <div class="pf-chart-scroll"><div class="pf-bars" role="img" aria-label="Biểu đồ thu và chi <?= $meta[0] ?>">
+                    <?php foreach ($rows as $row): ?><?php $periodLabel = str_replace('Week ', 'Tuần ', $row['period']); ?><div class="pf-bar-group" title="<?= $this->escapeHtmlAttr($periodLabel) ?>: thu <?= number_format((float) $row['income'], 0, ',', '.') ?>, chi <?= number_format((float) $row['expense'], 0, ',', '.') ?> đồng"><div class="pf-bar-pair"><div class="pf-bar pf-bar-income" style="--bar-size: <?= max(1, round((float) $row['income'] / $max * 100)) ?>%"></div><div class="pf-bar pf-bar-expense" style="--bar-size: <?= max(1, round((float) $row['expense'] / $max * 100)) ?>%"></div></div><span><?= $this->escapeHtml($periodLabel) ?></span></div><?php endforeach; ?>
+                </div></div>
+                <div class="pf-trend-list"><div class="pf-trend-head"><span data-i18n="<?= $key === 'weeklyTrend' ? 'finance.week' : 'finance.month' ?>"><?= $meta[1] ?></span><span data-i18n="finance.income">Thu</span><span data-i18n="finance.expense">Chi</span><span data-i18n="finance.comparePrevious">So kỳ trước</span><span data-i18n="finance.compareFirst">So kỳ đầu</span></div>
+                    <?php foreach ($rows as $row): ?><div class="pf-trend-row"><span><?= $this->escapeHtml(str_replace('Week ', 'Tuần ', $row['period'])) ?></span><span><?= number_format((float) $row['income'], 0, ',', '.') ?></span><span><?= number_format((float) $row['expense'], 0, ',', '.') ?></span><span class="<?= $row['direction'] === 'positive' ? 'pf-income' : 'pf-expense' ?>"><?= $row['vs_previous'] > 0 ? '+' : '' ?><?= $row['vs_previous'] ?>%</span><span class="<?= $row['vs_first'] <= 0 ? 'pf-income' : 'pf-expense' ?>"><?= $row['vs_first'] > 0 ? '+' : '' ?><?= $row['vs_first'] ?>%</span></div><?php endforeach; ?>
+                </div>
+                <?php $last = $rows[count($rows) - 1]; ?><p class="pf-trend-conclusion <?= $last['vs_first'] <= 0 ? 'pf-income' : 'pf-expense' ?>"><span data-i18n="<?= $last['vs_first'] <= 0 ? 'finance.spendingDecreased' : 'finance.spendingIncreased' ?>">Chi tiêu <?= $last['vs_first'] <= 0 ? 'giảm' : 'tăng' ?></span> <?= abs($last['vs_first']) ?>% so với <?= $meta[1] === 'Tuần' ? 'tuần đầu của tháng' : 'tháng đầu của năm' ?>.</p>
+            <?php endif; ?>
+        </section>
+    <?php endforeach; ?>
+</div>

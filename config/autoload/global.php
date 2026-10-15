@@ -13,5 +13,13 @@
  */
 
 return [
-    // ...
+    'personal_finance' => [
+        'database' => [
+            'host' => getenv('DB_HOST') ?: '127.0.0.1',
+            'port' => (int) (getenv('DB_PORT') ?: 3307),
+            'database' => getenv('DB_DATABASE') ?: 'erp',
+            'username' => getenv('DB_USERNAME') ?: '',
+            'password' => getenv('DB_PASSWORD') ?: '',
+        ],
+    ],
 ];
