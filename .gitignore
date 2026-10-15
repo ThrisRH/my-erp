@@ -1,0 +1,18 @@
+.vagrant/
+.env
+vendor/
+config/development.config.php
+config/autoload/local.php
+config/autoload/*.local.php
+config/autoload/*.local-development.php
+
+data/cache/*
+!data/cache/.gitkeep
+phpunit.xml
+.phpunit.result.cache
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker/
+
