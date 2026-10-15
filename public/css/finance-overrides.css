@@ -1,0 +1,119 @@
+.pf-trend-head,
+.pf-trend-row { grid-template-columns: repeat(5, minmax(0, 1fr)); min-width: 31rem; }
+.pf-trend-list { overflow-x: auto; }
+.pf-trend-conclusion { font-size: 14px; font-weight: 600; margin: 1rem 0 0; border-top: 1px solid var(--line); padding-top: 1rem; }
+.pf-budget-row strong { display: flex; align-items: center; gap: .5rem; }
+.pf-category-row small { display: block; color: var(--muted); font-size: 12px; margin-top: .25rem; }
+
+:root { --ink: #202b38; --muted: #647386; --line: #dfe5eb; --blue: #366da8; --blue-soft: #edf4fa; --background: #f8fafc; }
+[data-theme="dark"] { --ink: #e7edf5; --muted: #9baabd; --line: #2c3a4b; --blue: #78a9dc; --blue-soft: #1b3046; --background: #111a25; color-scheme: dark; }
+[data-theme="dark"] .app-sidebar { background: #151f2b; border-color: var(--line); }
+[data-theme="dark"] .app-sidebar nav a { color: #c3d0df; }
+[data-theme="dark"] .app-sidebar nav a:hover, [data-theme="dark"] .app-sidebar nav a:focus-visible { background: #223246; }
+[data-theme="dark"] .app-sidebar nav a[aria-current="page"] { background: #203a55; color: #dcecff; }
+[data-theme="dark"] .pf-panel, [data-theme="dark"] .pf-finance-summary, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea, [data-theme="dark"] .pf-button { background: #192431; color: var(--ink); border-color: var(--line); }
+[data-theme="dark"] .pf-button-primary { background: #4f84bb; border-color: #4f84bb; color: #fff; }
+[data-theme="dark"] .pf-button-secondary:hover { background: #22354a; }
+[data-theme="dark"] .app-preference-button:hover, [data-theme="dark"] .app-language-select select:hover { background: #223246; color: var(--ink); }
+[data-theme="dark"] .pf-finance-summary-flow, [data-theme="dark"] .pf-finance-summary-flow > div + div, [data-theme="dark"] .pf-chart .pf-section-head { border-color: var(--line); }
+[data-theme="dark"] .pf-month-divider { background: #192431; }
+[data-theme="dark"] .pf-modal { background: #192431; color: var(--ink); border-color: var(--line); }
+[data-theme="dark"] .pf-progress { background: #2a394a; }
+[data-theme="dark"] .pf-tabs, [data-theme="dark"] .pf-transaction, [data-theme="dark"] .pf-trend-head, [data-theme="dark"] .pf-trend-row { border-color: var(--line); }
+.app-sidebar { background: #f1f4f7; color: var(--ink); border-right: 1px solid var(--line); }
+.app-shell { align-items: flex-start; }
+.app-sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.app-brand { font-size: 16px; letter-spacing: -.02em; }
+.app-brand-logo { display: block; width: min(100%, 10rem); }
+.app-brand-logo img { display: block; width: 100%; height: auto; }
+.app-brand-logo .app-logo-dark { display: none; }
+[data-theme="dark"] .app-brand-logo { padding: .5rem; border-radius: .5rem;}
+[data-theme="dark"] .app-logo-light { display: none; }
+[data-theme="dark"] .app-brand-logo .app-logo-dark { display: block; }
+.app-brand-mark { background: #315f91; border-radius: .5rem; }
+.app-brand small, .app-nav-caption { color: var(--muted); }
+.app-brand small { letter-spacing: .08em; }
+.app-sidebar nav a { color: #465465; border-radius: .5rem; }
+.app-sidebar nav a:hover, .app-sidebar nav a:focus-visible { background: #e6ecf2; }
+.app-sidebar nav a[aria-current="page"] { background: #e4edf6; color: #244f7f; font-weight: 600; }
+.app-preferences { margin-top: auto; display: flex; align-items: center; gap: .5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.app-preference-button, .app-language-select select { border: 0; background: transparent; color: inherit; font-size: 12px; font-weight: 600; padding: .5rem; }
+.app-preference-button { display: inline-flex; align-items: center; gap: .5rem; }
+.app-preference-button:hover, .app-language-select select:hover { background: #e6ecf2; border-radius: .5rem; }
+.app-language-select { margin-left: auto; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.app-content { padding-top: var(--s4); }
+.pf-heading { margin-bottom: var(--s3); align-items: end; }
+.pf-heading .pf-eyebrow { display: none; }
+.pf-subtitle { max-width: 36rem; }
+.pf-tabs { margin-bottom: var(--s3); }
+.pf-panel { box-shadow: none; border-radius: .75rem; }
+.pf-button, input, select, textarea { border-radius: .5rem; }
+.pf-period-picker { display: inline-flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 9rem; padding: .65rem .75rem; border: 1px solid var(--line); border-radius: .5rem; background: var(--surface); color: var(--ink); font-size: 14px; }
+.pf-date-picker { display: inline-flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; padding: .65rem .75rem; border: 1px solid var(--line); border-radius: .5rem; background: var(--surface); color: var(--ink); font-size: 14px; text-align: left; }
+.pf-period-picker > span:first-child, .pf-date-picker > span:first-child { min-width: 0; flex: 1; }
+.ui-icon { width: 1rem; height: 1rem; flex: 0 0 1rem; display: block; }
+.pf-period-picker .ui-icon, .pf-date-picker .ui-icon { margin-inline-start: auto; }
+.pf-icon-button .ui-icon { width: 1.25rem; height: 1.25rem; margin: auto; }
+.pf-period-picker:hover { border-color: var(--blue); }
+.pf-month-modal { width: min(90vw, 27rem); }
+.pf-month-picker-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s2); }
+.pf-month-picker-head strong { font-size: 20px; }
+.pf-month-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s1); }
+.pf-month-option { min-height: 3rem; border: 1px solid var(--line); border-radius: .5rem; background: transparent; color: var(--ink); font-size: 14px; }
+.pf-month-option:hover, .pf-month-option.is-selected { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); font-weight: 600; }
+.pf-weekdays, .pf-date-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .25rem; }
+.pf-weekdays { margin-bottom: .5rem; color: var(--muted); font-size: 12px; text-align: center; }
+.pf-date-option, .pf-date-blank { min-height: 2.35rem; display: grid; place-items: center; border-radius: .5rem; }
+.pf-date-option { border: 1px solid transparent; background: transparent; color: var(--ink); font-size: 14px; }
+.pf-date-option:hover, .pf-date-option.is-selected { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); font-weight: 600; }
+[data-theme="dark"] .pf-period-picker, [data-theme="dark"] .pf-date-picker, [data-theme="dark"] .pf-month-option, [data-theme="dark"] .pf-date-option { background: #192431; color: var(--ink); border-color: var(--line); }
+
+.pf-finance-summary { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(16rem, 1fr); border: 1px solid var(--line); border-radius: .75rem; background: #fff; margin-bottom: var(--s2); overflow: hidden; }
+.pf-finance-summary-main { padding: var(--s4); }
+.pf-finance-summary-main > span, .pf-finance-summary-flow span { display: block; font-size: 12px; color: var(--muted); }
+.pf-finance-summary-main strong { display: block; font-size: clamp(24px, 2.2vw, 42px); letter-spacing: -.04em; margin: var(--s1) 0; font-variant-numeric: tabular-nums; }
+.pf-finance-summary-main small { font-size: 20px; font-weight: 500; }
+.pf-finance-summary-main p { color: var(--muted); font-size: 12px; margin: 0; }
+.pf-finance-summary-flow { display: grid; align-content: center; padding: var(--s2) var(--s4); border-left: 1px solid var(--line); }
+.pf-finance-summary-flow > div { padding: var(--s1) 0; }
+.pf-finance-summary-flow > div + div { border-top: 1px solid var(--line); }
+.pf-finance-summary-flow strong { display: block; font-size: 20px; font-weight: 600; margin-top: .25rem; font-variant-numeric: tabular-nums; }
+
+.pf-chart-grid { grid-template-columns: minmax(0, 1fr); }
+.pf-chart { padding: var(--s4); }
+.pf-chart-primary .pf-bars { height: 18rem; }
+.pf-chart-secondary .pf-bars { height: 12rem; }
+.pf-section-kicker { color: var(--muted); font-size: 12px; margin-bottom: var(--s1); }
+.pf-chart .pf-section-head { padding-bottom: var(--s2); border-bottom: 1px solid var(--line); }
+.pf-chart h2 { font-size: 20px; }
+.pf-chart-legend i { border-radius: .125rem; }
+.pf-trend-row span { font-variant-numeric: tabular-nums; }
+.pf-spending-chart { margin-bottom: var(--s2); }
+.pf-chart-total { color: var(--ink); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pf-donut-layout { display: grid; grid-template-columns: minmax(12rem, .7fr) minmax(0, 1fr); align-items: center; gap: var(--s4); padding-top: var(--s2); }
+.pf-donut { display: grid; place-items: center; width: min(100%, 15rem); aspect-ratio: 1; margin-inline: auto; border-radius: 50%; background: conic-gradient(var(--donut-segments)); position: relative; }
+.pf-donut::after { content: ''; position: absolute; width: 62%; aspect-ratio: 1; border-radius: 50%; background: var(--surface); }
+.pf-donut span { z-index: 1; display: grid; gap: .25rem; font-size: 20px; font-weight: 700; text-align: center; }
+.pf-donut small { color: var(--muted); font-size: 12px; font-weight: 500; }
+.pf-donut-legend { display: grid; gap: .75rem; }
+.pf-donut-legend > div { display: grid; grid-template-columns: .75rem minmax(0, 1fr) auto; align-items: center; gap: .5rem; font-size: 14px; }
+.pf-donut-legend i { width: .625rem; height: .625rem; border-radius: 50%; background: var(--legend-color); }
+.pf-donut-legend strong { font-size: 12px; font-variant-numeric: tabular-nums; }
+[data-theme="dark"] .pf-donut::after { background: #192431; }
+
+@media (max-width: 760px) {
+    .pf-finance-summary { grid-template-columns: 1fr; }
+    .pf-finance-summary-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); border-left: 0; border-top: 1px solid var(--line); }
+    .pf-finance-summary-flow > div + div { border-top: 0; }
+    .pf-donut-layout { grid-template-columns: 1fr; gap: var(--s2); }
+}
+@media (max-width: 620px) {
+    .app-sidebar { position: static; height: auto; overflow: visible; border-right: 0; border-bottom: 1px solid var(--line); }
+    .app-sidebar nav a[aria-current="page"] { background: transparent; }
+    .app-brand-logo { width: 6rem; }
+    .pf-chart { padding: var(--s2); }
+    .pf-finance-summary-main { padding: var(--s2); }
+    .pf-finance-summary-flow { padding: var(--s1) var(--s2); }
+    .pf-finance-summary-flow strong { font-size: 16px; }
+}
