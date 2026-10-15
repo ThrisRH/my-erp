@@ -9,7 +9,7 @@ For every new user requirement, update `docs/PROJECT_CONTEXT.md` in the same cha
 ## Architecture and database
 
 - This is a Laminas MVC (Zend Framework successor) ERP application running in Docker.
-- Use a simple MVC structure: action controllers belong in `src/Controller/Action`, domain/data classes belong in `src/Model`, and view helpers belong in `src/View/Helper`. Controllers must extend Laminas/Zend MVC controller base classes such as `AbstractActionController`.
+- Use a simple MVC structure: each module's top-level controller belongs in `src/Controller` and its action handlers belong in a controller-named folder, e.g. `src/Controller/PersonalFinance/IndexAction.php`. Domain/data classes and SQL queries belong in `src/Model`, while view helpers belong in `src/View/Helper`. Controllers must extend Laminas/Zend MVC controller base classes such as `AbstractActionController`.
 - Do not introduce controller or service factories for application modules. Keep controller construction framework-native and let a model build its local database dependency from the configured application settings.
 - Use the existing `Application` module conventions, PSR-4 autoloading, and PSR-12 code style.
 - MySQL schema changes are versioned SQL scripts in `docker/mysql/init/`; use descriptive, ascending prefixes. Do not edit an initialization script that may already have run in a developer database; add a new migration instead.

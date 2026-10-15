@@ -15,7 +15,7 @@ return [
                 'options' => [
                     'route' => '/personal-finance',
                     'defaults' => [
-                        'controller' => Controller\Action\PersonalFinanceController::class,
+                        'controller' => Controller\PersonalFinanceController::class,
                         'action' => 'index',
                     ],
                 ],
@@ -36,7 +36,7 @@ return [
     ],
     'controllers' => [
         'invokables' => [
-            Controller\Action\PersonalFinanceController::class => Controller\Action\PersonalFinanceController::class,
+            Controller\PersonalFinanceController::class => Controller\PersonalFinanceController::class,
         ],
     ],
     'view_manager' => [
