@@ -2,19 +2,43 @@
 
 declare(strict_types=1);
 
-namespace PersonalFinance\Service;
+namespace PersonalFinance\Model;
 
 use DateTimeImmutable;
 use InvalidArgumentException;
-use PersonalFinance\Repository\PersonalFinanceRepository;
+use PDO;
+use PersonalFinance\View\Helper\CategoryIcons;
+use RuntimeException;
 
-class PersonalFinanceService
+class PersonalFinanceModel
 {
     private PersonalFinanceRepository $repository;
 
     public function __construct(PersonalFinanceRepository $repository)
     {
         $this->repository = $repository;
+    }
+
+    /** @param array<string, mixed> $database */
+    public static function fromConfig(array $database): self
+    {
+        if (($database['username'] ?? '') === '' || ($database['password'] ?? '') === '') {
+            throw new RuntimeException('Personal finance database credentials are not configured.');
+        }
+
+        $dsn = sprintf(
+            'mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',
+            $database['host'] ?? '127.0.0.1',
+            (int) ($database['port'] ?? 3306),
+            $database['database'] ?? 'erp'
+        );
+        $connection = new PDO($dsn, (string) $database['username'], (string) $database['password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+
+        return new self(new PersonalFinanceRepository($connection));
     }
 
     /** @return array<string, mixed>|null */

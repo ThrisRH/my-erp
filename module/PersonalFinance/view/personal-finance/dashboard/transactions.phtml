@@ -1,4 +1,4 @@
-<?php use PersonalFinance\Service\CategoryIcons; ?>
+<?php use PersonalFinance\View\Helper\CategoryIcons; ?>
 <section class="pf-panel"><div class="pf-section-head"><div><p class="pf-eyebrow" data-i18n="finance.history">LỊCH SỬ</p><h2 data-i18n="finance.transactions">Giao dịch</h2><p class="pf-subtitle"><?= (int) $dashboard['count'] ?> giao dịch · mới nhất trước</p></div></div>
 <?php $lastMonth = null; ?>
 <?php if ($dashboard['transactions'] === []): ?><p class="pf-empty">Chưa có giao dịch.</p><?php endif; ?>

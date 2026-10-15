@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PersonalFinance\Repository;
+namespace PersonalFinance\Model;
 
 use DateTimeImmutable;
 use PDO;

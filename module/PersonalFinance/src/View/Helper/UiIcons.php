@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PersonalFinance\Service;
+namespace PersonalFinance\View\Helper;
 
 final class UiIcons
 {
