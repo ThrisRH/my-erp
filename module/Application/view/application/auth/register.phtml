@@ -1,0 +1,25 @@
+<section class="auth-card" aria-labelledby="auth-title">
+    <div class="auth-card-head">
+        <p class="auth-eyebrow" data-i18n="auth.getStarted">GET STARTED</p>
+        <h1 id="auth-title" data-i18n="auth.registerTitle">Create your account</h1>
+        <p data-i18n="auth.registerDescription">Your finance workspace is private to you. Verify your email to activate it.</p>
+    </div>
+    <?php if ($error !== null): ?><p role="alert" class="auth-error"><?= $this->escapeHtml($error) ?></p><?php endif; ?>
+    <?php if ($sent): ?>
+        <p class="auth-success" role="status" data-i18n="auth.checkEmail">Check your email for a verification link. It expires in 24 hours.</p>
+        <a class="pf-button pf-button-secondary auth-link-button" href="<?= $this->url('login') ?>" data-i18n="auth.backToSignIn">Back to sign in</a>
+    <?php else: ?>
+        <form method="post" action="<?= $this->url('register') ?>" class="auth-form">
+            <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr($csrfToken) ?>">
+            <div class="auth-form-pair">
+                <label><span data-i18n="auth.firstName">First name</span><input name="first_name" autocomplete="given-name" maxlength="100" value="<?= $this->escapeHtmlAttr($input['first_name']) ?>" required></label>
+                <label><span data-i18n="auth.lastName">Last name</span><input name="last_name" autocomplete="family-name" maxlength="100" value="<?= $this->escapeHtmlAttr($input['last_name']) ?>" required></label>
+            </div>
+            <label><span data-i18n="auth.workEmail">Email address</span><input name="email" type="email" autocomplete="email" maxlength="255" value="<?= $this->escapeHtmlAttr($input['email']) ?>" required></label>
+            <label><span data-i18n="auth.password">Password</span><input name="password" type="password" autocomplete="new-password" minlength="12" required><small data-i18n="auth.passwordHint">At least 12 characters.</small></label>
+            <label><span data-i18n="auth.confirmPassword">Confirm password</span><input name="password_confirm" type="password" autocomplete="new-password" minlength="12" required></label>
+            <button class="pf-button pf-button-primary auth-submit" type="submit" data-i18n="auth.createAccount">Create an account</button>
+        </form>
+        <p class="auth-card-foot"><span data-i18n="auth.haveAccount">Already have an account?</span> <a href="<?= $this->url('login') ?>" data-i18n="auth.signIn">Sign in</a></p>
+    <?php endif; ?>
+</section>

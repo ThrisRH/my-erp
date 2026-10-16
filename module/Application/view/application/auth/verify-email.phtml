@@ -1,0 +1,13 @@
+<section class="auth-card" aria-labelledby="auth-title">
+    <div class="auth-card-head">
+        <p class="auth-eyebrow" data-i18n="auth.getStarted">GET STARTED</p>
+        <h1 id="auth-title" data-i18n="auth.verifyTitle">Email verification</h1>
+    </div>
+    <?php if ($verified): ?>
+        <p class="auth-success" role="status" data-i18n="auth.verified">Your email is verified. You can sign in now.</p>
+    <?php else: ?>
+        <p class="auth-error" role="alert" data-i18n="auth.expiredLink">This link is invalid or has expired. Request a new one.</p>
+        <a href="<?= $this->url('register') ?>" data-i18n="auth.registerTitle">Create your account</a>
+    <?php endif; ?>
+    <p class="auth-card-foot"><a href="<?= $this->url('login') ?>" data-i18n="auth.backToSignIn">Back to sign in</a></p>
+</section>

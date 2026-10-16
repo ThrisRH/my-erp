@@ -18,7 +18,7 @@ class Module
                 return;
             }
             $route = $match->getMatchedRouteName();
-            if ($route === 'login') {
+            if (in_array($route, ['login', 'register', 'verify-email', 'forgot-password', 'reset-password'], true)) {
                 return;
             }
             $config = $routeEvent->getApplication()->getServiceManager()->get('config');
@@ -48,10 +48,8 @@ class Module
             ];
             $rule = $permissions[$route] ?? null;
             $permission = is_array($rule) ? ($rule[$match->getParam('action')] ?? null) : $rule;
-            if ($route === 'logout') {
-                return;
-            }
-            if (!is_string($permission) || !$access->allows($permission, $account)) {
+            if (!in_array($route, ['logout', 'profile', 'profile-update', 'change-password'], true)
+                && (!is_string($permission) || !$access->allows($permission, $account))) {
                 $response = $routeEvent->getResponse();
                 $response->setStatusCode(403);
                 $response->getHeaders()->addHeaderLine('Content-Type', 'text/plain; charset=utf-8');

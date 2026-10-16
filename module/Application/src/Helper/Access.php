@@ -40,7 +40,8 @@ class Access
             return null;
         }
         $account = $this->accounts->findById($id);
-        if ($account === null || $account['status'] !== 'active' || $account['employment_status'] !== 'active') {
+        if ($account === null || $account['status'] !== 'active' || $account['employment_status'] !== 'active'
+            || (int) $account['session_version'] !== (int) ($_SESSION['userStorage']['version'] ?? -1)) {
             unset($_SESSION['userStorage']);
             return null;
         }

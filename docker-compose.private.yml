@@ -9,7 +9,16 @@ services:
     ports:
       - "127.0.0.1:${PRIVATE_APP_PORT:-8000}:80"
     environment:
+      APP_ENV: production
       APP_COOKIE_SECURE: "1"
+      APP_BASE_URL: ${APP_BASE_URL:?Set APP_BASE_URL to the Tailscale HTTPS URL}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-disabled}
+      MAIL_FROM: ${MAIL_FROM:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_ENCRYPTION: ${SMTP_ENCRYPTION:-starttls}
       DB_HOST: db
       DB_PORT: 3306
       DB_DATABASE: ${MYSQL_DATABASE:?Set MYSQL_DATABASE in .env}

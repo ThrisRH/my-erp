@@ -16,7 +16,7 @@ Clone project lên VM, lấy phiên bản code có file `docker-compose.private.
 cp .env.example .env
 ```
 
-Sửa `.env` trên VM: đặt mật khẩu `MYSQL_PASSWORD` và `MYSQL_ROOT_PASSWORD` ngẫu nhiên, dài, khác nhau; không đưa file này lên Git. Sau đó:
+Sửa `.env` trên VM: đặt mật khẩu `MYSQL_PASSWORD` và `MYSQL_ROOT_PASSWORD` ngẫu nhiên, dài, khác nhau; đặt `APP_BASE_URL` thành URL HTTPS Tailscale của VM; không đưa file này lên Git. Khi có dịch vụ SMTP, đặt `MAIL_TRANSPORT=smtp` và điền các biến `SMTP_*` theo [hướng dẫn tài khoản](ACCESS_CONTROL.md). Chưa có SMTP thì đăng ký và quên mật khẩu sẽ tạm không hoạt động để tránh lộ link đặt lại trên web. Sau đó:
 
 ```sh
 docker compose -f docker-compose.private.yml up -d --build
@@ -24,7 +24,7 @@ docker compose -f docker-compose.private.yml ps
 curl --fail http://127.0.0.1:8000/personal-finance
 ```
 
-Compose riêng này chỉ bind web vào `127.0.0.1:8000` của VM (có thể đổi qua `PRIVATE_APP_PORT` khi cần). MySQL không publish port. Schema từ `docker/mysql/init/` chỉ được MySQL áp dụng khi volume database còn trống; không xóa volume để cập nhật schema. Với database đã có dữ liệu, áp dụng migration ACL theo [ACCESS_CONTROL.md](ACCESS_CONTROL.md) và khởi tạo admin trước khi đăng nhập.
+Compose riêng này chỉ bind web vào `127.0.0.1:8000` của VM (có thể đổi qua `PRIVATE_APP_PORT` khi cần). MySQL không publish port. Schema từ `docker/mysql/init/` chỉ được MySQL áp dụng khi volume database còn trống; không xóa volume để cập nhật schema. Với database đã có dữ liệu, áp dụng migration ACL và recovery theo [ACCESS_CONTROL.md](ACCESS_CONTROL.md) và khởi tạo admin trước khi đăng nhập.
 
 ## 3. Cho điện thoại truy cập
 
