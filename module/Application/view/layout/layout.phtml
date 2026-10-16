@@ -21,8 +21,8 @@ $isFinance = $financeUrl !== null && str_starts_with($path, $financeUrl);
     </script>
     <?= $this->headTitle('My ERP')->setSeparator(' · ')->setAutoEscape(false) ?>
     <?= $this->headMeta()->appendName('viewport', 'width=device-width, initial-scale=1') ?>
-    <?= $this->headLink()->appendFavicon($this->basePath('img/my-erp-favicon.png'), 'image/png')
-        ->appendStylesheet($this->basePath('css/style.css'))
+    <link rel="icon" type="image/png" href="<?= $this->basePath('img/my-erp-favicon.png') ?>">
+    <?= $this->headLink()->appendStylesheet($this->basePath('css/style.css'))
         ->appendStylesheet($this->basePath('css/finance-overrides.css')) ?>
 </head>
 <body>
