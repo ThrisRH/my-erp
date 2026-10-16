@@ -24,8 +24,91 @@ function filterOptions(typeInput, selectInput) {
   type.addEventListener('change', update);
   update();
 }
-filterOptions('transaction_type', 'category_id');
 filterOptions('category-type', 'category-parent');
+
+// Transaction category picker modal handling
+const categoryPickerModal = document.getElementById('category-picker-modal');
+const categoryTrigger = document.querySelector('[data-category-picker-trigger]');
+const categoryInput = document.getElementById('category_id');
+const transactionTypeSelect = document.getElementById('transaction_type');
+
+function updateCategoryTriggerDisplay() {
+  if (!categoryTrigger || !categoryInput) return;
+  const selectedId = categoryInput.value;
+  const currentOption = categoryPickerModal?.querySelector(`[data-cat-id="${selectedId}"]`);
+  const iconTarget = categoryTrigger.querySelector('[data-category-trigger-icon]');
+  const nameTarget = categoryTrigger.querySelector('[data-category-trigger-name]');
+
+  if (currentOption) {
+    const iconSvg = currentOption.querySelector('.pf-category-icon svg')?.cloneNode(true);
+    if (iconTarget) {
+      iconTarget.replaceChildren(iconSvg || '');
+    }
+    if (nameTarget) {
+      nameTarget.textContent = currentOption.dataset.catName || '';
+    }
+    categoryPickerModal?.querySelectorAll('.pf-category-card-option').forEach(btn => {
+      const isSelected = btn.dataset.catId === selectedId;
+      btn.classList.toggle('is-selected', isSelected);
+      btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+    });
+  } else {
+    // Select first matching category by transaction type if available
+    const type = transactionTypeSelect?.value || 'expense';
+    const firstMatch = categoryPickerModal?.querySelector(`.pf-category-card-option[data-cat-type="${type}"]:not([hidden])`);
+    if (firstMatch) {
+      categoryInput.value = firstMatch.dataset.catId;
+      updateCategoryTriggerDisplay();
+    }
+  }
+}
+
+function filterCategoryOptions() {
+  if (!categoryPickerModal || !transactionTypeSelect) return;
+  const currentType = transactionTypeSelect.value;
+  const options = categoryPickerModal.querySelectorAll('.pf-category-card-option');
+  let hasCurrent = false;
+
+  options.forEach(opt => {
+    const matches = opt.dataset.catType === currentType;
+    opt.hidden = !matches;
+    if (matches && opt.dataset.catId === categoryInput?.value) {
+      hasCurrent = true;
+    }
+  });
+
+  if (!hasCurrent) {
+    const firstValid = categoryPickerModal.querySelector(`.pf-category-card-option[data-cat-type="${currentType}"]`);
+    if (firstValid && categoryInput) {
+      categoryInput.value = firstValid.dataset.catId;
+    }
+  }
+  updateCategoryTriggerDisplay();
+}
+
+if (categoryTrigger && categoryPickerModal) {
+  categoryTrigger.addEventListener('click', () => {
+    filterCategoryOptions();
+    categoryPickerModal.showModal();
+  });
+
+  categoryPickerModal.addEventListener('click', event => {
+    const option = event.target.closest('.pf-category-card-option');
+    if (!option) return;
+    if (categoryInput) {
+      categoryInput.value = option.dataset.catId;
+    }
+    updateCategoryTriggerDisplay();
+    categoryPickerModal.close();
+  });
+
+  transactionTypeSelect?.addEventListener('change', () => {
+    filterCategoryOptions();
+  });
+
+  // Initial trigger setup
+  updateCategoryTriggerDisplay();
+}
 
 const categoryEditModal = document.getElementById('category-edit-modal');
 const categoryDeleteModal = document.getElementById('category-delete-modal');
