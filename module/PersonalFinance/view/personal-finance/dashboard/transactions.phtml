@@ -1,0 +1,12 @@
+<?php use PersonalFinance\View\Helper\CategoryIcons; ?>
+<section class="pf-panel"><div class="pf-section-head"><div><p class="pf-eyebrow" data-i18n="finance.history">LỊCH SỬ</p><h2 data-i18n="finance.transactions">Giao dịch</h2><p class="pf-subtitle"><?= (int) $dashboard['count'] ?> giao dịch · mới nhất trước</p></div></div>
+<?php $lastMonth = null; ?>
+<?php if ($dashboard['transactions'] === []): ?><p class="pf-empty">Chưa có giao dịch.</p><?php endif; ?>
+<?php foreach ($dashboard['transactions'] as $transaction): ?>
+    <?php $group = substr($transaction['occurred_on'], 0, 7); if ($group !== $lastMonth): $lastMonth = $group; ?>
+        <h3 class="pf-month-divider">Tháng <?= $this->escapeHtml(date('m/Y', strtotime($group . '-01'))) ?></h3>
+    <?php endif; ?>
+    <div class="pf-transaction"><div class="pf-category-icon"><?= CategoryIcons::svg($transaction['category_icon']) ?></div><div class="pf-transaction-main"><strong><?= $this->escapeHtml($transaction['category_name']) ?></strong><span><?= $this->escapeHtml($transaction['wallet_name']) ?> · <?= $this->escapeHtml($transaction['notes'] ?: 'Không có ghi chú') ?></span></div><time><?= $this->escapeHtml(date('d/m/Y', strtotime($transaction['occurred_on']))) ?></time><strong class="<?= $transaction['transaction_type'] === 'income' ? 'pf-income' : 'pf-expense' ?>"><?= $transaction['transaction_type'] === 'income' ? '+' : '−' ?><?= number_format((float) $transaction['amount'], 0, ',', '.') ?> ₫</strong><a class="pf-text-button" href="<?= $this->url('personal-finance', [], ['query' => ['tab' => 'transactions', 'month' => $month->format('Y-m'), 'page' => $dashboard['page'], 'edit' => $transaction['id']]]) ?>" data-i18n="finance.edit">Sửa</a></div>
+<?php endforeach; ?>
+<?php if ($dashboard['pages'] > 1): ?><nav class="pf-pagination" aria-label="Trang giao dịch"><?php for ($p = 1; $p <= $dashboard['pages']; $p++): ?><a href="<?= $this->url('personal-finance', [], ['query' => ['tab' => 'transactions', 'month' => $month->format('Y-m'), 'page' => $p]]) ?>" class="<?= $p === $dashboard['page'] ? 'is-active' : '' ?>" <?= $p === $dashboard['page'] ? 'aria-current="page"' : '' ?>><?= $p ?></a><?php endfor; ?></nav><?php endif; ?>
+</section>

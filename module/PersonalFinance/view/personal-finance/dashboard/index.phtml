@@ -1,0 +1,55 @@
+<?php
+/** @var Laminas\View\Renderer\PhpRenderer $this */
+use PersonalFinance\View\Helper\CategoryIcons;
+use PersonalFinance\View\Helper\UiIcons;
+
+$this->headTitle('Thu chi cá nhân');
+$monthValue = $month->format('Y-m');
+$url = function ($tabName, $extra = []) use ($monthValue) {
+    return $this->url('personal-finance', [], ['query' => array_merge(['tab' => $tabName, 'month' => $monthValue], $extra)]);
+};
+?>
+<header class="pf-heading">
+    <div><p class="pf-eyebrow">TÀI CHÍNH CÁ NHÂN</p><h1 data-i18n="finance.title">Thu chi cá nhân</h1><p class="pf-subtitle" data-i18n="finance.subtitle">Theo dõi dòng tiền, ngân sách và xu hướng chi tiêu của bạn.</p></div>
+    <div class="pf-heading-actions">
+        <form method="get" class="pf-period"><input type="hidden" name="tab" value="<?= $this->escapeHtmlAttr($tab) ?>"><input id="month" name="month" type="hidden" value="<?= $this->escapeHtmlAttr($monthValue) ?>"><label for="period-picker" data-i18n="finance.month">Tháng</label><button id="period-picker" type="button" class="pf-period-picker" data-month-picker data-month-value="<?= $this->escapeHtmlAttr($monthValue) ?>"><span><?= $this->escapeHtml($month->format('m/Y')) ?></span><?= UiIcons::svg('chevron-down') ?></button><button class="pf-button pf-button-secondary" data-i18n="finance.filter">Lọc</button></form>
+        <?php if ($employee !== null): ?><button class="pf-button pf-button-primary" data-modal-open="transaction-modal" data-i18n="finance.addTransaction">+ Thêm giao dịch</button><?php endif; ?>
+    </div>
+</header>
+
+<?php $notices = ['saved' => 'Đã thêm giao dịch.', 'updated' => 'Đã cập nhật giao dịch.', 'invalid' => 'Vui lòng kiểm tra thông tin giao dịch.', 'budget_saved' => 'Đã lưu ngân sách.', 'budget_cloned' => 'Đã sao chép ngân sách tháng trước.', 'budget_invalid' => 'Ngân sách không hợp lệ.', 'category_saved' => 'Đã tạo danh mục.', 'category_invalid' => 'Vui lòng kiểm tra tên, loại, icon và danh mục cha.', 'no_employee' => 'Chưa có nhân viên để sử dụng.']; ?>
+<?php if (isset($notices[$notice ?? ''])): ?><div class="pf-notice" role="status"><?= $this->escapeHtml($notices[$notice]) ?></div><?php endif; ?>
+
+<?php if ($employee === null): ?>
+    <div class="pf-panel pf-empty">Chưa có nhân viên đang hoạt động.</div>
+<?php else: ?>
+    <nav class="pf-tabs" aria-label="Mục tài chính">
+        <?php foreach (['overview' => ['Tổng quan', 'app.overview'], 'transactions' => ['Giao dịch', 'finance.transactions'], 'budget' => ['Ngân sách', 'finance.budget'], 'categories' => ['Danh mục', 'finance.categories']] as $key => $label): ?>
+            <a href="<?= $url($key) ?>" class="<?= $tab === $key ? 'is-active' : '' ?>" <?= $tab === $key ? 'aria-current="page"' : '' ?> data-i18n="<?= $label[1] ?>"><?= $label[0] ?></a>
+        <?php endforeach; ?>
+    </nav>
+    <?php if ($tab === 'transactions'): ?>
+        <?= $this->partial('personal-finance/dashboard/transactions', ['dashboard' => $dashboard, 'month' => $month]) ?>
+    <?php elseif ($tab === 'budget'): ?>
+        <?= $this->partial('personal-finance/dashboard/budget', ['dashboard' => $dashboard, 'month' => $month]) ?>
+    <?php elseif ($tab === 'categories'): ?>
+        <?= $this->partial('personal-finance/dashboard/categories', ['dashboard' => $dashboard, 'month' => $month]) ?>
+    <?php else: ?>
+        <?= $this->partial('personal-finance/dashboard/overview', ['dashboard' => $dashboard, 'month' => $month]) ?>
+    <?php endif; ?>
+
+    <?php $categories = array_merge($dashboard['incomeCategories'] ?? [], $dashboard['expenseCategories'] ?? []); $wallets = $dashboard['wallets'] ?? []; ?>
+    <dialog id="transaction-modal" class="pf-modal" aria-labelledby="transaction-modal-title">
+        <form method="post" action="<?= $this->url('personal-finance/action', ['action' => $editingTransaction === null ? 'add' : 'update']) ?>">
+            <div class="pf-modal-head"><h2 id="transaction-modal-title" data-i18n="<?= $editingTransaction === null ? 'finance.addTransactionTitle' : 'finance.editTransactionTitle' ?>"><?= $editingTransaction === null ? 'Thêm giao dịch' : 'Sửa giao dịch' ?></h2><button type="button" class="pf-icon-button" data-modal-close aria-label="Đóng">×</button></div>
+            <input type="hidden" name="month" value="<?= $this->escapeHtmlAttr($monthValue) ?>">
+            <?php if ($editingTransaction !== null): ?><input type="hidden" name="id" value="<?= (int) $editingTransaction['id'] ?>"><?php endif; ?>
+            <div class="pf-form-grid"><label><span data-i18n="finance.transactionType">Loại giao dịch</span><select name="transaction_type" id="transaction_type" required><option value="expense" <?= ($editingTransaction['transaction_type'] ?? '') === 'expense' ? 'selected' : '' ?> data-i18n="finance.expense">Chi</option><option value="income" <?= ($editingTransaction['transaction_type'] ?? '') === 'income' ? 'selected' : '' ?> data-i18n="finance.income">Thu</option></select></label><label><span data-i18n="finance.wallet">Ví</span><select name="wallet_id" id="wallet_id" required><?php foreach ($wallets as $wallet): ?><option value="<?= (int) $wallet['id'] ?>" <?= (int) ($editingTransaction['wallet_id'] ?? 0) === (int) $wallet['id'] ? 'selected' : '' ?>><?= $this->escapeHtml($wallet['name']) ?></option><?php endforeach; ?><optgroup label="Tạo nhanh"><option value="quick:cash">+ Tiền mặt</option><option value="quick:bank">+ Ngân hàng</option><option value="quick:e_wallet">+ Ví điện tử</option></optgroup></select></label><label><span data-i18n="finance.category">Danh mục</span><select name="category_id" id="category_id" required><?php foreach ($categories as $category): ?><option value="<?= (int) $category['id'] ?>" data-type="<?= $this->escapeHtmlAttr($category['transaction_type']) ?>" <?= (int) ($editingTransaction['category_id'] ?? 0) === (int) $category['id'] ? 'selected' : '' ?>><?= $this->escapeHtml($category['name']) ?></option><?php endforeach; ?></select></label><label><span data-i18n="finance.amount">Số tiền (₫)</span><input name="amount" type="number" min="1" step="1" value="<?= $this->escapeHtmlAttr($editingTransaction['amount'] ?? '') ?>" required></label><label><span data-i18n="finance.date">Ngày giao dịch</span><input id="occurred_on" name="occurred_on" type="hidden" value="<?= $this->escapeHtmlAttr($editingTransaction['occurred_on'] ?? date('Y-m-d')) ?>"><button type="button" class="pf-date-picker" data-date-picker><span><?= $this->escapeHtml(date('d/m/Y', strtotime($editingTransaction['occurred_on'] ?? date('Y-m-d')))) ?></span><?= UiIcons::svg('chevron-down') ?></button></label><label class="pf-full"><span data-i18n="finance.notes">Ghi chú</span><textarea name="notes" maxlength="1000" rows="3"><?= $this->escapeHtml($editingTransaction['notes'] ?? '') ?></textarea></label></div>
+            <div class="pf-modal-actions"><button type="button" class="pf-button pf-button-secondary" data-modal-close data-i18n="finance.cancel">Hủy</button><button class="pf-button pf-button-primary" data-i18n="finance.saveTransaction">Lưu giao dịch</button></div>
+        </form>
+    </dialog>
+    <dialog id="month-picker-modal" class="pf-modal pf-month-modal" aria-labelledby="month-picker-title"><div class="pf-modal-head"><h2 id="month-picker-title">Chọn tháng và năm</h2><button type="button" class="pf-icon-button" data-modal-close aria-label="Đóng">×</button></div><div class="pf-month-picker-head"><button type="button" class="pf-icon-button" data-month-year="previous" aria-label="Năm trước"><?= UiIcons::svg('chevron-left') ?></button><strong data-month-year-label></strong><button type="button" class="pf-icon-button" data-month-year="next" aria-label="Năm sau"><?= UiIcons::svg('chevron-right') ?></button></div><div class="pf-month-grid" data-month-grid></div></dialog>
+    <dialog id="date-picker-modal" class="pf-modal pf-month-modal" aria-labelledby="date-picker-title"><div class="pf-modal-head"><h2 id="date-picker-title">Chọn ngày giao dịch</h2><button type="button" class="pf-icon-button" data-modal-close aria-label="Đóng">×</button></div><div class="pf-month-picker-head"><button type="button" class="pf-icon-button" data-date-month="previous" aria-label="Tháng trước"><?= UiIcons::svg('chevron-left') ?></button><strong data-date-label></strong><button type="button" class="pf-icon-button" data-date-month="next" aria-label="Tháng sau"><?= UiIcons::svg('chevron-right') ?></button></div><div class="pf-weekdays" aria-hidden="true"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div><div class="pf-date-grid" data-date-grid></div></dialog>
+    <?php if ($editingTransaction !== null): ?><script>document.addEventListener('DOMContentLoaded', function () { document.getElementById('transaction-modal').showModal(); });</script><?php endif; ?>
+<?php endif; ?>
+<script src="<?= $this->basePath('js/personal-finance.js') ?>" defer></script>
