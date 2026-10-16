@@ -13,14 +13,16 @@ use RuntimeException;
 class PersonalFinanceModel
 {
     private PersonalFinanceRepository $repository;
+    private int $employeeId;
 
-    public function __construct(PersonalFinanceRepository $repository)
+    public function __construct(PersonalFinanceRepository $repository, int $employeeId)
     {
         $this->repository = $repository;
+        $this->employeeId = $employeeId;
     }
 
     /** @param array<string, mixed> $database */
-    public static function fromConfig(array $database): self
+    public static function fromConfig(array $database, int $employeeId): self
     {
         if (($database['username'] ?? '') === '' || ($database['password'] ?? '') === '') {
             throw new RuntimeException('Personal finance database credentials are not configured.');
@@ -38,14 +40,13 @@ class PersonalFinanceModel
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
 
-        return new self(new PersonalFinanceRepository($connection));
+        return new self(new PersonalFinanceRepository($connection), $employeeId);
     }
 
     /** @return array<string, mixed>|null */
     public function currentEmployee(): ?array
     {
-        // Authentication will replace this temporary employee resolver.
-        return $this->repository->findCurrentEmployee();
+        return $this->repository->findCurrentEmployee($this->employeeId);
     }
 
     /** @return array{summary: array<string, string>, transactions: list<array<string, mixed>>, incomeCategories: list<array<string, mixed>>, expenseCategories: list<array<string, mixed>>} */

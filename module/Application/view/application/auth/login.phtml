@@ -1,0 +1,11 @@
+<section class="auth-card">
+    <h1 data-i18n="auth.signInTitle">Sign in to My ERP</h1>
+    <p data-i18n="auth.signInDescription">Use your employee account to continue.</p>
+    <?php if ($error !== null): ?><p role="alert" class="auth-error"><?= $this->escapeHtml($error) ?></p><?php endif; ?>
+    <form method="post" action="<?= $this->url('login') ?>">
+        <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr($csrfToken) ?>">
+        <label><span data-i18n="auth.username">Username</span><input name="username" autocomplete="username" required autofocus></label>
+        <label><span data-i18n="auth.password">Password</span><input name="password" type="password" autocomplete="current-password" required></label>
+        <button class="pf-button pf-button-primary" type="submit" data-i18n="auth.signIn">Sign in</button>
+    </form>
+</section>

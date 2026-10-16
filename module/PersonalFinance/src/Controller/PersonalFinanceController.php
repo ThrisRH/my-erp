@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PersonalFinance\Controller;
 
+use Application\Helper\Access;
+use Application\Model\AccountModel;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
 use PersonalFinance\Controller\PersonalFinance\BudgetAction;
@@ -62,8 +64,11 @@ class PersonalFinanceController extends AbstractActionController
         /** @var array<string, mixed> $config */
         $config = $serviceManager->get('config');
 
-        return $this->model = PersonalFinanceModel::fromConfig(
-            $config['personal_finance']['database'] ?? []
-        );
+        $database = $config['personal_finance']['database'] ?? [];
+        $account = (new Access(new AccountModel($database)))->account();
+        if ($account === null) {
+            throw new \RuntimeException('Authentication required.');
+        }
+        return $this->model = PersonalFinanceModel::fromConfig($database, (int) $account['employee_id']);
     }
 }

@@ -47,6 +47,7 @@ $selectedWallet = $dashboard['selectedWallet'];
 </section>
 <dialog id="wallet-modal" class="pf-modal" aria-labelledby="wallet-modal-title">
     <form method="post" action="<?= $this->url('personal-finance/action', ['action' => 'create-wallet']) ?>">
+        <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr(\Application\Helper\Access::csrfToken()) ?>">
         <div class="pf-modal-head"><h2 id="wallet-modal-title" data-i18n="finance.createWalletTitle">Create wallet</h2><button type="button" class="pf-icon-button" data-modal-close aria-label="Close" data-i18n-aria-label="finance.close">×</button></div>
         <p class="pf-subtitle" data-i18n="finance.createWalletDescription">Choose a wallet type. A number is added automatically when the name is already in use.</p>
         <input type="hidden" name="month" value="<?= $month->format('Y-m') ?>">

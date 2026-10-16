@@ -44,6 +44,7 @@ $url = function ($tabName, $extra = []) use ($monthValue) {
     <?php $categories = array_merge($dashboard['incomeCategories'] ?? [], $dashboard['expenseCategories'] ?? []); $wallets = $dashboard['wallets'] ?? []; ?>
     <dialog id="transaction-modal" class="pf-modal" aria-labelledby="transaction-modal-title">
         <form method="post" action="<?= $this->url('personal-finance/action', ['action' => $editingTransaction === null ? 'add' : 'update']) ?>">
+            <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr(\Application\Helper\Access::csrfToken()) ?>">
             <div class="pf-modal-head"><h2 id="transaction-modal-title" data-i18n="<?= $editingTransaction === null ? 'finance.addTransactionTitle' : 'finance.editTransactionTitle' ?>"><?= $editingTransaction === null ? 'Add transaction' : 'Edit transaction' ?></h2><button type="button" class="pf-icon-button" data-modal-close aria-label="Close" data-i18n-aria-label="finance.close">×</button></div>
             <input type="hidden" name="month" value="<?= $this->escapeHtmlAttr($monthValue) ?>">
             <input type="hidden" name="return_tab" value="<?= $tab === 'wallets' ? 'wallets' : 'transactions' ?>">

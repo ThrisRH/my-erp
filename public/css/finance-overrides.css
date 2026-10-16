@@ -156,3 +156,12 @@
     .pf-finance-summary-flow { padding: var(--s1) var(--s2); }
     .pf-finance-summary-flow strong { font-size: 16px; }
 }
+.auth-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
+.auth-shell .app-content { display: grid; place-items: center; width: 100%; }
+.auth-card { width: min(100%, 420px); padding: 32px; border: 1px solid var(--line, #d7dce3); border-radius: 16px; background: var(--surface, #fff); }
+.auth-card h1 { margin: 0 0 8px; font-size: 24px; }
+.auth-card p { margin: 0 0 24px; }
+.auth-card form { display: grid; gap: 16px; }
+.auth-card label { display: grid; gap: 8px; font-size: 14px; }
+.auth-card input { width: 100%; padding: 12px; border: 1px solid var(--line, #d7dce3); border-radius: 8px; background: var(--surface, #fff); color: inherit; }
+.auth-error { color: #b42318; }

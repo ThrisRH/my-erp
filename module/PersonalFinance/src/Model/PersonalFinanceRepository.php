@@ -17,15 +17,15 @@ class PersonalFinanceRepository
     }
 
     /** @return array<string, mixed>|null */
-    public function findCurrentEmployee(): ?array
+    public function findCurrentEmployee(int $employeeId): ?array
     {
-        $statement = $this->connection->query(
+        $statement = $this->connection->prepare(
             "SELECT id, employee_code, first_name, last_name, work_email
              FROM employees
-             WHERE employment_status = 'active'
-             ORDER BY id ASC
+             WHERE employment_status = 'active' AND id = :employee_id
              LIMIT 1"
         );
+        $statement->execute(['employee_id' => $employeeId]);
 
         $employee = $statement->fetch();
 

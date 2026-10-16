@@ -10,6 +10,7 @@ try {
 
 $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $isFinance = $financeUrl !== null && str_starts_with($path, $financeUrl);
+$isLogin = $path === '/login';
 ?>
 <?= $this->doctype() ?>
 <html lang="en" data-theme="light">
@@ -26,7 +27,8 @@ $isFinance = $financeUrl !== null && str_starts_with($path, $financeUrl);
         ->appendStylesheet($this->basePath('css/finance-overrides.css')) ?>
 </head>
 <body>
-    <div class="app-shell">
+    <div class="app-shell<?= $isLogin ? ' auth-shell' : '' ?>">
+        <?php if (!$isLogin): ?>
         <aside class="app-sidebar">
             <a class="app-brand app-brand-logo" href="<?= $this->url('home') ?>" aria-label="My ERP">
                 <img class="app-logo-light" src="<?= $this->basePath('img/my-erp-sidebar-logo-light.png') ?>" alt="My ERP">
@@ -40,6 +42,10 @@ $isFinance = $financeUrl !== null && str_starts_with($path, $financeUrl);
                 <?php endif; ?>
             </nav>
             <div class="app-preferences" aria-label="Interface preferences">
+                <form method="post" action="<?= $this->url('logout') ?>">
+                    <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr(\Application\Helper\Access::csrfToken()) ?>">
+                    <button type="submit" class="app-preference-button" data-i18n="auth.signOut">Sign out</button>
+                </form>
                 <button type="button" class="app-preference-button" data-theme-toggle aria-label="Toggle light and dark mode">
                     <span aria-hidden="true">◐</span><span data-i18n="app.theme">Theme</span>
                 </button>
@@ -49,6 +55,7 @@ $isFinance = $financeUrl !== null && str_starts_with($path, $financeUrl);
                 </label>
             </div>
         </aside>
+        <?php endif; ?>
         <main class="app-content"><div class="app-content-inner"><?= $this->content ?></div></main>
     </div>
     <script src="<?= $this->basePath('js/app-preferences.js') ?>" defer></script>

@@ -24,7 +24,7 @@ docker compose -f docker-compose.private.yml ps
 curl --fail http://127.0.0.1:8000/personal-finance
 ```
 
-Compose riêng này chỉ bind web vào `127.0.0.1:8000` của VM (có thể đổi qua `PRIVATE_APP_PORT` khi cần). MySQL không publish port. Schema từ `docker/mysql/init/` chỉ được MySQL áp dụng khi volume database còn trống; không xóa volume để cập nhật schema.
+Compose riêng này chỉ bind web vào `127.0.0.1:8000` của VM (có thể đổi qua `PRIVATE_APP_PORT` khi cần). MySQL không publish port. Schema từ `docker/mysql/init/` chỉ được MySQL áp dụng khi volume database còn trống; không xóa volume để cập nhật schema. Với database đã có dữ liệu, áp dụng migration ACL theo [ACCESS_CONTROL.md](ACCESS_CONTROL.md) và khởi tạo admin trước khi đăng nhập.
 
 ## 3. Cho điện thoại truy cập
 
@@ -40,6 +40,6 @@ Lệnh thứ hai cho biết URL HTTPS `*.ts.net`. Mở URL đó trên điện th
 ## 4. Dữ liệu và giới hạn hiện tại
 
 - Database là volume Docker trên Oracle VM. Hãy xuất bản sao lưu định kỳ và cất ở nơi khác VM; không coi một VM miễn phí là bản sao lưu.
-- App hiện chưa có đăng nhập, nên mọi thiết bị được phép vào URL Tailscale sẽ dùng cùng tài khoản nhân viên tạm. Chỉ đưa thiết bị của bạn vào tailnet cho đến khi ứng dụng có xác thực riêng.
-- Bộ dependency hiện khóa PHP 8.0/8.1 và image riêng này dùng PHP 8.0. Đây là cấu hình truy cập riêng tạm thời. Cần nâng PHP/Laminas và bổ sung đăng nhập trước khi mở truy cập công khai.
+- App có đăng nhập và ACL; tạo tài khoản admin trước khi sử dụng. Chỉ đưa thiết bị tin cậy vào tailnet.
+- Bộ dependency hiện khóa PHP 8.0/8.1 và image riêng này dùng PHP 8.0. Đây là cấu hình truy cập riêng tạm thời. Cần nâng PHP/Laminas và rà soát bảo mật trước khi mở truy cập công khai.
 - Oracle có thể thiếu Always Free VM ở region đã chọn và có chính sách thu hồi VM nhàn rỗi. Theo dõi trạng thái VM và duy trì bản sao lưu độc lập.
