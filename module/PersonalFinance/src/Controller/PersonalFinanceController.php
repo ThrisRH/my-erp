@@ -44,6 +44,16 @@ class PersonalFinanceController extends AbstractActionController
         return (new CategoryAction())->handle($this, $this->model());
     }
 
+    public function updateCategoryAction()
+    {
+        return (new CategoryAction())->update($this, $this->model());
+    }
+
+    public function deleteCategoryAction()
+    {
+        return (new CategoryAction())->delete($this, $this->model());
+    }
+
     public function saveBudgetAction()
     {
         return (new BudgetAction())->save($this, $this->model());

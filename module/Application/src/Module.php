@@ -41,6 +41,8 @@ class Module
                     'update' => 'finance.transaction.update',
                     'create-wallet' => 'finance.wallet.create',
                     'add-category' => 'finance.category.create',
+                    'update-category' => 'finance.category.create',
+                    'delete-category' => 'finance.category.create',
                     'save-budget' => 'finance.budget.manage',
                     'clone-budget' => 'finance.budget.manage',
                 ],

@@ -131,6 +131,53 @@ class PersonalFinanceModel
         ]);
     }
 
+    /** @param array<string, mixed> $input */
+    public function updateCategory(int $employeeId, array $input): void
+    {
+        $categoryId = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
+        if ($categoryId === false || $categoryId <= 0) {
+            throw new InvalidArgumentException('Invalid category details.');
+        }
+        $category = $this->repository->findOwnedCategory($employeeId, $categoryId);
+        if ($category === null) {
+            throw new InvalidArgumentException('This category cannot be changed.');
+        }
+
+        $name = trim((string) ($input['name'] ?? ''));
+        $icon = (string) ($input['icon'] ?? 'folder');
+        $parentId = filter_var($input['parent_id'] ?? 0, FILTER_VALIDATE_INT);
+        $type = (string) $category['transaction_type'];
+        if ($name === '' || strlen($name) > 100 || !in_array($icon, CategoryIcons::names(), true)
+            || $parentId === false || $parentId < 0 || $parentId === $categoryId
+            || ($parentId > 0 && $this->repository->findCategory($employeeId, $parentId, $type) === null)
+            || ($parentId > 0 && $this->repository->parentChainContains($categoryId, $parentId))
+        ) {
+            throw new InvalidArgumentException('Invalid category details.');
+        }
+
+        $this->repository->updateOwnedCategory([
+            'id' => $categoryId,
+            'employee_id' => $employeeId,
+            'name' => $name,
+            'icon' => $icon,
+            'parent_id' => $parentId,
+        ]);
+    }
+
+    public function deleteCategory(int $employeeId, ?string $categoryInput): void
+    {
+        $categoryId = filter_var($categoryInput, FILTER_VALIDATE_INT);
+        if ($categoryId === false || $categoryId <= 0
+            || $this->repository->findOwnedCategory($employeeId, $categoryId) === null
+        ) {
+            throw new InvalidArgumentException('This category cannot be deleted.');
+        }
+        if ($this->repository->categoryHasReferences($categoryId)) {
+            throw new InvalidArgumentException('Category is in use.');
+        }
+        $this->repository->deleteOwnedCategory($employeeId, $categoryId);
+    }
+
     public function parseMonth(?string $month): DateTimeImmutable
     {
         $month ??= date('Y-m');
