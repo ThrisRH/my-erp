@@ -13,6 +13,7 @@ For every new user requirement, update `docs/PROJECT_CONTEXT.md` in the same cha
 - Do not introduce controller or service factories for application modules. Keep controller construction framework-native and let a model build its local database dependency from the configured application settings.
 - Use the existing `Application` module conventions, PSR-4 autoloading, and PSR-12 code style.
 - MySQL schema changes are versioned SQL scripts in `docker/mysql/init/`; use descriptive, ascending prefixes. Do not edit an initialization script that may already have run in a developer database; add a new migration instead.
+- Any future sample, demo, or QA data written to the database must belong exclusively to the administrator's employee account. Never seed employee-scoped transactions, wallets, budgets, or personal categories for another account, and always remove temporary QA records after verification.
 - Never store real credentials in versioned files. Add placeholders only to `.env.example`.
 
 ## UI and reuse
