@@ -1,0 +1,74 @@
+<?php
+use PersonalFinance\View\Helper\CategoryIcons;
+use PersonalFinance\View\Helper\UiIcons;
+use PersonalFinance\View\Helper\WalletLabels;
+
+$currentMonth = $month->format('m/Y');
+$previousMonth = $month->modify('first day of previous month')->format('m/Y');
+$selectedWallet = $dashboard['selectedWallet'];
+?>
+<section class="pf-wallet-overview" aria-labelledby="wallets-title">
+    <div class="pf-wallet-intro">
+        <div>
+            <p class="pf-eyebrow" data-i18n="finance.walletsEyebrow">YOUR MONEY</p>
+            <h2 id="wallets-title" data-i18n="finance.wallets">My wallets</h2>
+            <p class="pf-subtitle" data-i18n="finance.walletsDescription">See where your money sits and how each wallet contributes to spending.</p>
+            <button class="pf-button pf-button-primary pf-wallet-create" type="button" data-modal-open="wallet-modal" data-i18n="finance.createWallet">+ Create wallet</button>
+        </div>
+        <div class="pf-wallet-total">
+            <span data-i18n="finance.totalWalletBalance">Total recorded balance</span>
+            <strong><?= number_format((float) $dashboard['totalBalance'], 0, ',', '.') ?> ₫</strong>
+            <small data-i18n="finance.balanceAsOfToday">Income minus expenses recorded through today</small>
+        </div>
+    </div>
+    <?php if ($dashboard['walletFinancials'] === []): ?>
+        <div class="pf-panel pf-empty" data-i18n="finance.noWallets">No wallets yet. Create one from the wallet menu when adding a transaction.</div>
+    <?php else: ?>
+        <div class="pf-wallet-grid">
+            <?php foreach ($dashboard['walletFinancials'] as $wallet): ?>
+                <?php $isSelected = $selectedWallet !== null && (int) $selectedWallet['id'] === (int) $wallet['id']; ?>
+                <a class="pf-wallet-card <?= $isSelected ? 'is-selected' : '' ?>" href="<?= $this->url('personal-finance', [], ['query' => ['tab' => 'wallets', 'month' => $month->format('Y-m'), 'wallet' => $wallet['id']]]) ?>" <?= $isSelected ? 'aria-current="true"' : '' ?>>
+                    <span class="pf-wallet-card-top"><span class="pf-wallet-symbol"><?= CategoryIcons::svg('wallet') ?></span><span class="pf-wallet-open"><?= UiIcons::svg('chevron-right') ?></span></span>
+                    <span class="pf-wallet-name" <?php if (WalletLabels::key($wallet['name']) !== null): ?>data-i18n="<?= WalletLabels::key($wallet['name']) ?>"<?php endif; ?>><?= $this->escapeHtml(WalletLabels::english($wallet['name'])) ?></span>
+                    <span class="pf-wallet-balance-label" data-i18n="finance.currentBalance">Current balance</span>
+                    <strong class="pf-wallet-balance <?= (float) $wallet['balance'] < 0 ? 'pf-expense' : '' ?>"><?= number_format((float) $wallet['balance'], 0, ',', '.') ?> ₫</strong>
+                    <span class="pf-wallet-divider"></span>
+                    <span class="pf-wallet-share-heading" data-i18n="finance.shareOfSpending">Share of total spending</span>
+                    <span class="pf-wallet-period"><span><?= $this->escapeHtml($currentMonth) ?></span><strong><?= number_format((float) $wallet['current_share'], 1) ?>%</strong></span>
+                    <span class="pf-wallet-track"><span style="width: <?= max(0, min(100, (float) $wallet['current_share'])) ?>%"></span></span>
+                    <span class="pf-wallet-spent"><?= number_format((float) $wallet['current_spending'], 0, ',', '.') ?> ₫ <span data-i18n="finance.spentSuffix">spent</span></span>
+                    <span class="pf-wallet-period pf-wallet-period-previous"><span><?= $this->escapeHtml($previousMonth) ?></span><strong><?= number_format((float) $wallet['previous_share'], 1) ?>%</strong></span>
+                    <span class="pf-wallet-track pf-wallet-track-previous"><span style="width: <?= max(0, min(100, (float) $wallet['previous_share'])) ?>%"></span></span>
+                    <span class="pf-wallet-spent"><?= number_format((float) $wallet['previous_spending'], 0, ',', '.') ?> ₫ <span data-i18n="finance.spentSuffix">spent</span></span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>
+<dialog id="wallet-modal" class="pf-modal" aria-labelledby="wallet-modal-title">
+    <form method="post" action="<?= $this->url('personal-finance/action', ['action' => 'create-wallet']) ?>">
+        <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr(\Application\Helper\Access::csrfToken()) ?>">
+        <div class="pf-modal-head"><h2 id="wallet-modal-title" data-i18n="finance.createWalletTitle">Create wallet</h2><button type="button" class="pf-icon-button" data-modal-close aria-label="Close" data-i18n-aria-label="finance.close">×</button></div>
+        <p class="pf-subtitle" data-i18n="finance.createWalletDescription">Choose a wallet type. A number is added automatically when the name is already in use.</p>
+        <input type="hidden" name="month" value="<?= $month->format('Y-m') ?>">
+        <div class="pf-wallet-choices">
+            <button type="submit" name="preset" value="cash" class="pf-wallet-choice"><?= CategoryIcons::svg('wallet') ?><span data-i18n="finance.walletCash">Cash</span><?= UiIcons::svg('chevron-right') ?></button>
+            <button type="submit" name="preset" value="bank" class="pf-wallet-choice"><?= CategoryIcons::svg('wallet') ?><span data-i18n="finance.walletBank">Bank</span><?= UiIcons::svg('chevron-right') ?></button>
+            <button type="submit" name="preset" value="e_wallet" class="pf-wallet-choice"><?= CategoryIcons::svg('wallet') ?><span data-i18n="finance.walletEWallet">E-wallet</span><?= UiIcons::svg('chevron-right') ?></button>
+        </div>
+    </form>
+</dialog>
+<?php if ($selectedWallet !== null): ?>
+    <section class="pf-wallet-detail" aria-labelledby="wallet-detail-title">
+        <div class="pf-wallet-detail-head">
+            <div><p class="pf-eyebrow" data-i18n="finance.walletActivity">WALLET ACTIVITY</p><h2 id="wallet-detail-title" <?php if (WalletLabels::key($selectedWallet['name']) !== null): ?>data-i18n="<?= WalletLabels::key($selectedWallet['name']) ?>"<?php endif; ?>><?= $this->escapeHtml(WalletLabels::english($selectedWallet['name'])) ?></h2></div>
+            <a class="pf-text-button" href="<?= $this->url('personal-finance', [], ['query' => ['tab' => 'wallets', 'month' => $month->format('Y-m')]]) ?>" data-i18n="finance.backToWallets">All wallets</a>
+        </div>
+        <?= $this->partial('personal-finance/dashboard/transactions', [
+            'dashboard' => $dashboard,
+            'month' => $month,
+            'listTab' => 'wallets',
+            'listExtra' => ['wallet' => $selectedWallet['id']],
+        ]) ?>
+    </section>
+<?php endif; ?>

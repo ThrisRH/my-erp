@@ -30,10 +30,9 @@ filterOptions('category-type', 'category-parent');
 const monthPicker = document.getElementById('month-picker-modal');
 const monthInput = document.getElementById('month');
 const monthTrigger = document.querySelector('[data-month-picker]');
-const monthNames = [
-  'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-  'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
-];
+const currentLocale = () => document.documentElement.lang === 'vi' ? 'vi-VN' : 'en-US';
+const monthName = (index) => new Intl.DateTimeFormat(currentLocale(), { month: 'long' })
+  .format(new Date(2026, index, 1));
 let displayedYear = Number((monthInput?.value || new Date().toISOString()).slice(0, 4));
 
 function renderMonthPicker() {
@@ -43,7 +42,8 @@ function renderMonthPicker() {
   if (!yearLabel || !grid) return;
   yearLabel.textContent = displayedYear;
   const selectedMonth = monthInput.value.slice(5, 7);
-  grid.replaceChildren(...monthNames.map((name, index) => {
+  grid.replaceChildren(...Array.from({ length: 12 }, (_, index) => {
+    const name = monthName(index);
     const value = `${displayedYear}-${String(index + 1).padStart(2, '0')}`;
     const button = document.createElement('button');
     button.type = 'button';
@@ -89,7 +89,8 @@ function renderDatePicker() {
   const label = datePicker.querySelector('[data-date-label]');
   const grid = datePicker.querySelector('[data-date-grid]');
   if (!label || !grid) return;
-  label.textContent = `Tháng ${displayedDate.getMonth() + 1}, ${displayedDate.getFullYear()}`;
+  label.textContent = new Intl.DateTimeFormat(currentLocale(), { month: 'long', year: 'numeric' })
+    .format(displayedDate);
   const firstDay = new Date(displayedDate.getFullYear(), displayedDate.getMonth(), 1);
   const daysInMonth = new Date(displayedDate.getFullYear(), displayedDate.getMonth() + 1, 0).getDate();
   const leadingDays = (firstDay.getDay() + 6) % 7;
@@ -129,7 +130,12 @@ datePicker?.addEventListener('click', event => {
   if (target.dataset.dateValue && dateInput && dateTrigger) {
     dateInput.value = target.dataset.dateValue;
     const selected = new Date(`${target.dataset.dateValue}T12:00:00`);
-    dateTrigger.querySelector('span')?.replaceChildren(selected.toLocaleDateString('vi-VN'));
+    dateTrigger.querySelector('span')?.replaceChildren(selected.toLocaleDateString(currentLocale()));
     datePicker.close();
   }
+});
+
+document.addEventListener('my-erp:locale-change', () => {
+  if (monthPicker?.open) renderMonthPicker();
+  if (datePicker?.open) renderDatePicker();
 });

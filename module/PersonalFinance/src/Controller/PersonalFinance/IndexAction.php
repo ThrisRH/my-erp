@@ -14,11 +14,13 @@ class IndexAction
     {
         $month = $model->parseMonth($controller->params()->fromQuery('month'));
         $tab = (string) $controller->params()->fromQuery('tab', 'overview');
-        if (!in_array($tab, ['overview', 'transactions', 'budget', 'categories'], true)) {
+        if (!in_array($tab, ['overview', 'transactions', 'wallets', 'budget', 'categories'], true)) {
             $tab = 'overview';
         }
 
         $page = max(1, (int) $controller->params()->fromQuery('page', 1));
+        $walletInput = filter_var($controller->params()->fromQuery('wallet'), FILTER_VALIDATE_INT);
+        $walletId = $walletInput !== false && $walletInput > 0 ? $walletInput : null;
         $employee = $model->currentEmployee();
         if ($employee === null) {
             return $this->view([
@@ -33,7 +35,7 @@ class IndexAction
         return $this->view([
             'employee' => $employee,
             'month' => $month,
-            'dashboard' => $model->dashboard((int) $employee['id'], $month, $tab, $page),
+            'dashboard' => $model->dashboard((int) $employee['id'], $month, $tab, $page, $walletId),
             'notice' => $controller->params()->fromQuery('notice'),
             'tab' => $tab,
             'editingTransaction' => $model->transactionForEdit(

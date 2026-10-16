@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+!.env.example
+vendor
+data/cache/*
+config/development.config.php
+config/autoload/local.php
+config/autoload/*.local.php
+config/autoload/*.local-development.php
+docs/PROJECT_CONTEXT.md

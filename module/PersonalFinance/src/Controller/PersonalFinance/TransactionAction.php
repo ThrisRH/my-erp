@@ -43,8 +43,15 @@ class TransactionAction
             }
         }
 
-        return $controller->redirect()->toRoute('personal-finance', [], [
-            'query' => ['month' => $month->format('Y-m'), 'tab' => 'transactions', 'notice' => $notice],
-        ]);
+        $query = ['month' => $month->format('Y-m'), 'tab' => 'transactions', 'notice' => $notice];
+        if ($controller->params()->fromPost('return_tab') === 'wallets') {
+            $query['tab'] = 'wallets';
+            $walletId = filter_var($controller->params()->fromPost('return_wallet'), FILTER_VALIDATE_INT);
+            if ($walletId !== false && $walletId > 0) {
+                $query['wallet'] = $walletId;
+            }
+        }
+
+        return $controller->redirect()->toRoute('personal-finance', [], ['query' => $query]);
     }
 }

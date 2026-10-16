@@ -1,0 +1,40 @@
+<?php
+$fullName = trim((string) $account['first_name'] . ' ' . (string) $account['last_name']);
+$initials = mb_strtoupper(mb_substr((string) $account['first_name'], 0, 1) . mb_substr((string) $account['last_name'], 0, 1));
+?>
+<div class="profile-page">
+    <header class="profile-heading">
+        <div><p class="pf-eyebrow" data-i18n="auth.account">ACCOUNT</p><h1 data-i18n="auth.profile">Profile &amp; settings</h1><p class="pf-subtitle" data-i18n="auth.profileDescription">Keep your personal details and account security up to date.</p></div>
+    </header>
+    <?php if ($error !== null): ?><p class="auth-error" role="alert"><?= $this->escapeHtml($error) ?></p><?php endif; ?>
+    <?php if ($notice === 'profile-updated'): ?><p class="pf-notice" role="status" data-i18n="auth.profileSaved">Your profile has been updated.</p><?php endif; ?>
+    <?php if ($notice === 'password-updated'): ?><p class="pf-notice" role="status" data-i18n="auth.passwordSaved">Your password has been updated.</p><?php endif; ?>
+    <section class="profile-identity pf-panel" aria-label="Account summary">
+        <span class="profile-avatar" aria-hidden="true"><?= $this->escapeHtml($initials) ?></span>
+        <div class="profile-identity-copy"><h2><?= $this->escapeHtml($fullName) ?></h2><p><?= $this->escapeHtml($account['work_email']) ?></p><small><?= $this->escapeHtml($account['job_title'] ?: $account['employee_code']) ?></small></div>
+        <span class="profile-account-type" data-i18n="<?= (int) $account['is_admin'] === 1 ? 'auth.administrator' : 'auth.employee' ?>"><?= (int) $account['is_admin'] === 1 ? 'Administrator' : 'Employee' ?></span>
+    </section>
+    <nav class="profile-tabs" aria-label="Profile sections"><a href="#personal-details" data-i18n="auth.personalDetails">Personal details</a><a href="#account-security" data-i18n="auth.security">Security</a></nav>
+    <div class="profile-grid">
+        <section class="pf-panel profile-section" id="personal-details" aria-labelledby="profile-details-title">
+            <div class="profile-section-head"><div><h2 id="profile-details-title" data-i18n="auth.personalDetails">Personal details</h2><p class="pf-subtitle" data-i18n="auth.detailsDescription">The information linked to your employee account.</p></div></div>
+            <form method="post" action="<?= $this->url('profile-update') ?>" class="profile-form">
+                <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr($csrfToken) ?>">
+                <div class="auth-form-pair"><label><span data-i18n="auth.firstName">First name</span><input name="first_name" value="<?= $this->escapeHtmlAttr($account['first_name']) ?>" maxlength="100" autocomplete="given-name" required></label><label><span data-i18n="auth.lastName">Last name</span><input name="last_name" value="<?= $this->escapeHtmlAttr($account['last_name']) ?>" maxlength="100" autocomplete="family-name" required></label></div>
+                <label><span data-i18n="auth.phone">Phone number</span><input name="phone" type="tel" value="<?= $this->escapeHtmlAttr($account['phone'] ?? '') ?>" maxlength="30" autocomplete="tel"></label>
+                <label><span data-i18n="auth.workEmail">Email address</span><input value="<?= $this->escapeHtmlAttr($account['work_email']) ?>" readonly aria-readonly="true"><small data-i18n="auth.emailLocked">Contact an administrator to change your email address.</small></label>
+                <div class="profile-form-actions"><button class="pf-button pf-button-primary" type="submit" data-i18n="auth.saveChanges">Save changes</button></div>
+            </form>
+        </section>
+        <section class="pf-panel profile-section" id="account-security" aria-labelledby="profile-security-title">
+            <div class="profile-section-head"><div><h2 id="profile-security-title" data-i18n="auth.security">Security</h2><p class="pf-subtitle" data-i18n="auth.securityDescription">Choose a strong password to protect your account.</p></div></div>
+            <form method="post" action="<?= $this->url('change-password') ?>" class="profile-form">
+                <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr($csrfToken) ?>">
+                <label><span data-i18n="auth.currentPassword">Current password</span><input name="current_password" type="password" autocomplete="current-password" required></label>
+                <label><span data-i18n="auth.newPassword">New password</span><input name="new_password" type="password" autocomplete="new-password" minlength="12" required><small data-i18n="auth.passwordHint">At least 12 characters.</small></label>
+                <label><span data-i18n="auth.confirmPassword">Confirm password</span><input name="password_confirm" type="password" autocomplete="new-password" minlength="12" required></label>
+                <div class="profile-form-actions"><button class="pf-button pf-button-primary" type="submit" data-i18n="auth.updatePassword">Update password</button></div>
+            </form>
+        </section>
+    </div>
+</div>

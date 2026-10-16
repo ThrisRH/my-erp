@@ -1,0 +1,16 @@
+<section class="auth-card" aria-labelledby="auth-title">
+    <div class="auth-card-head">
+        <p class="auth-eyebrow" data-i18n="auth.welcomeBack">WELCOME BACK</p>
+        <h1 id="auth-title" data-i18n="auth.signInTitle">Sign in to My ERP</h1>
+        <p data-i18n="auth.signInDescription">Enter your details to continue to your workspace.</p>
+    </div>
+    <?php if ($error !== null): ?><p role="alert" class="auth-error"><?= $this->escapeHtml($error) ?></p><?php endif; ?>
+    <form method="post" action="<?= $this->url('login') ?>" class="auth-form">
+        <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr($csrfToken) ?>">
+        <label><span data-i18n="auth.username">Username or email</span><input name="username" autocomplete="username" required autofocus></label>
+        <div class="auth-label-row"><span data-i18n="auth.password">Password</span><a href="<?= $this->url('forgot-password') ?>" data-i18n="auth.forgotLink">Forgot password?</a></div>
+        <input name="password" type="password" autocomplete="current-password" required aria-label="Password" data-i18n-aria-label="auth.password">
+        <button class="pf-button pf-button-primary auth-submit" type="submit" data-i18n="auth.signIn">Sign in</button>
+    </form>
+    <p class="auth-card-foot"><span data-i18n="auth.noAccount">New to My ERP?</span> <a href="<?= $this->url('register') ?>" data-i18n="auth.createAccount">Create an account</a></p>
+</section>

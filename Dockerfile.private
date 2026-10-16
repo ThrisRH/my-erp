@@ -1,0 +1,28 @@
+FROM php:8.0-cli AS dependencies
+
+RUN docker-php-ext-install pdo_mysql
+
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+COPY --from=busybox:1.36.1-musl /bin/busybox /usr/local/bin/unzip
+
+WORKDIR /var/www
+COPY composer.json composer.lock ./
+COPY module/ module/
+RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --no-plugins --no-scripts --optimize-autoloader
+
+FROM php:8.0-apache
+
+RUN docker-php-ext-install pdo_mysql \
+    && a2enmod rewrite \
+    && sed -i 's!/var/www/html!/var/www/public!g' /etc/apache2/sites-available/000-default.conf \
+    && rm -rf /var/www/html
+
+WORKDIR /var/www
+COPY --from=dependencies /var/www/vendor/ vendor/
+COPY config/ config/
+COPY bin/ bin/
+COPY module/ module/
+COPY public/ public/
+COPY composer.json composer.lock ./
+RUN mkdir -p data/cache \
+    && chown -R www-data:www-data data

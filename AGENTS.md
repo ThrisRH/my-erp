@@ -26,6 +26,7 @@ For every new user requirement, update `docs/PROJECT_CONTEXT.md` in the same cha
 - Use the 8px spacing scale and the typography scale 10, 12, 14, 16, 20, 24, 32, 42, and 56px. Prefer fluid percentages with sensible min/max bounds over rigid page widths.
 - Category icons must come from the single `PersonalFinance\View\Helper\CategoryIcons` SVG set, including the category creation picker. Use charts for trend comparisons and shared dialog patterns for short forms.
 - Global preferences live in `public/js/app-preferences.js` and the shared layout. Preserve its `data-theme` light/dark tokens and bilingual `data-i18n` convention; new user-facing UI must add Vietnamese and English messages there (or its future replacement) rather than introducing a module-specific preference system.
+- English is the source and fallback language. Author all visible UI wording, validation feedback, errors, notices, placeholders, titles, and accessibility labels in English first, and add a Vietnamese translation through the shared i18n catalog. Never use Vietnamese as a fallback. Code comments may be written in Vietnamese.
 - Use the shared popup month/date pickers in `public/js/personal-finance.js` for Personal Finance date selection; do not reintroduce typing-oriented date/month controls. Wallets are employee-owned and must be validated before a transaction is saved; quick wallet presets must preserve the automatic unique suffix behavior.
 
 ## Verification

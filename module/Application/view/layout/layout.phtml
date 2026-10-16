@@ -10,46 +10,77 @@ try {
 
 $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $isFinance = $financeUrl !== null && str_starts_with($path, $financeUrl);
+$isAuth = in_array($path, ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'], true);
+$isProfile = str_starts_with($path, '/profile');
 ?>
 <?= $this->doctype() ?>
-<html lang="vi" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="utf-8">
+    <?php if ($isAuth): ?><meta name="referrer" content="no-referrer"><?php endif; ?>
     <script>
         document.documentElement.dataset.theme = localStorage.getItem('my-erp-theme') || 'light';
-        document.documentElement.lang = localStorage.getItem('my-erp-locale') || 'vi';
+        document.documentElement.lang = localStorage.getItem('my-erp-locale') || 'en';
     </script>
     <?= $this->headTitle('My ERP')->setSeparator(' · ')->setAutoEscape(false) ?>
     <?= $this->headMeta()->appendName('viewport', 'width=device-width, initial-scale=1') ?>
-    <?= $this->headLink(['rel' => 'icon', 'type' => 'image/png', 'href' => $this->basePath('img/my-erp-favicon.png')])
-        ->appendStylesheet($this->basePath('css/style.css'))
+    <link rel="icon" type="image/png" href="<?= $this->basePath('img/my-erp-favicon.png') ?>">
+    <?= $this->headLink()->appendStylesheet($this->basePath('css/style.css'))
         ->appendStylesheet($this->basePath('css/finance-overrides.css')) ?>
 </head>
 <body>
-    <div class="app-shell">
+    <div class="app-shell<?= $isAuth ? ' auth-shell' : '' ?>">
+        <?php if ($isAuth): ?>
+        <aside class="auth-intro" aria-label="My ERP">
+            <a class="auth-brand" href="<?= $this->url('login') ?>" aria-label="My ERP">
+                <img class="app-logo-light" src="<?= $this->basePath('img/my-erp-sidebar-logo-light.png') ?>" alt="My ERP">
+                <img class="app-logo-dark" src="<?= $this->basePath('img/my-erp-sidebar-logo.png') ?>" alt="">
+            </a>
+            <div class="auth-intro-copy">
+                <p class="auth-eyebrow" data-i18n="auth.workspace">YOUR WORKSPACE</p>
+                <h2 data-i18n="auth.hero">Keep the important things in view.</h2>
+                <p data-i18n="auth.heroDescription">A clear home for your personal finance, inside My ERP.</p>
+            </div>
+            <p class="auth-intro-foot" data-i18n="auth.private">Your information stays in your account.</p>
+        </aside>
+        <?php else: ?>
         <aside class="app-sidebar">
             <a class="app-brand app-brand-logo" href="<?= $this->url('home') ?>" aria-label="My ERP">
                 <img class="app-logo-light" src="<?= $this->basePath('img/my-erp-sidebar-logo-light.png') ?>" alt="My ERP">
                 <img class="app-logo-dark" src="<?= $this->basePath('img/my-erp-sidebar-logo.png') ?>" alt="">
             </a>
-            <p class="app-nav-caption" data-i18n="app.navigation">ỨNG DỤNG</p>
-            <nav aria-label="Điều hướng chính">
-                <a href="<?= $this->url('home') ?>" <?= $isFinance ? '' : 'aria-current="page"' ?> data-i18n="app.overview">Tổng quan</a>
+            <p class="app-nav-caption" data-i18n="app.navigation">APPLICATIONS</p>
+            <nav aria-label="Primary navigation">
+                <a href="<?= $this->url('home') ?>" <?= $isFinance ? '' : 'aria-current="page"' ?> data-i18n="app.overview">Overview</a>
                 <?php if ($financeUrl !== null): ?>
-                    <a href="<?= $financeUrl ?>" <?= $isFinance ? 'aria-current="page"' : '' ?> data-i18n="app.personalFinance">Thu chi cá nhân</a>
+                    <a href="<?= $financeUrl ?>" <?= $isFinance ? 'aria-current="page"' : '' ?> data-i18n="app.personalFinance">Personal finance</a>
                 <?php endif; ?>
+                <a href="<?= $this->url('profile') ?>" <?= $isProfile ? 'aria-current="page"' : '' ?> data-i18n="auth.profile">Profile &amp; settings</a>
             </nav>
-            <div class="app-preferences" aria-label="Tùy chọn giao diện">
-                <button type="button" class="app-preference-button" data-theme-toggle aria-label="Đổi chế độ sáng tối">
-                    <span aria-hidden="true">◐</span><span data-i18n="app.theme">Giao diện</span>
+            <div class="app-preferences" aria-label="Interface preferences">
+                <form method="post" action="<?= $this->url('logout') ?>">
+                    <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr(\Application\Helper\Access::csrfToken()) ?>">
+                    <button type="submit" class="app-preference-button" data-i18n="auth.signOut">Sign out</button>
+                </form>
+                <button type="button" class="app-preference-button" data-theme-toggle aria-label="Toggle light and dark mode">
+                    <span aria-hidden="true">◐</span><span data-i18n="app.theme">Theme</span>
                 </button>
                 <label class="app-language-select">
-                    <span class="sr-only" data-i18n="app.language">Ngôn ngữ</span>
-                    <select data-language-select aria-label="Ngôn ngữ"><option value="vi">VI</option><option value="en">EN</option></select>
+                    <span class="sr-only" data-i18n="app.language">Language</span>
+                    <select data-language-select aria-label="Language"><option value="vi">VI</option><option value="en">EN</option></select>
                 </label>
             </div>
         </aside>
-        <main class="app-content"><div class="app-content-inner"><?= $this->content ?></div></main>
+        <?php endif; ?>
+        <main class="app-content">
+            <?php if ($isAuth): ?>
+            <div class="auth-tools">
+                <button type="button" class="app-preference-button" data-theme-toggle aria-label="Toggle light and dark mode"><span aria-hidden="true">◐</span><span data-i18n="app.theme">Theme</span></button>
+                <label class="app-language-select"><span class="sr-only" data-i18n="app.language">Language</span><select data-language-select aria-label="Language"><option value="vi">VI</option><option value="en">EN</option></select></label>
+            </div>
+            <?php endif; ?>
+            <div class="app-content-inner"><?= $this->content ?></div>
+        </main>
     </div>
     <script src="<?= $this->basePath('js/app-preferences.js') ?>" defer></script>
     <?= $this->inlineScript() ?>
