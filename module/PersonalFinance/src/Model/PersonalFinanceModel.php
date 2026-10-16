@@ -49,7 +49,7 @@ class PersonalFinanceModel
     }
 
     /** @return array{summary: array<string, string>, transactions: list<array<string, mixed>>, incomeCategories: list<array<string, mixed>>, expenseCategories: list<array<string, mixed>>} */
-    public function dashboard(int $employeeId, DateTimeImmutable $month, string $tab, int $page): array
+    public function dashboard(int $employeeId, DateTimeImmutable $month, string $tab, int $page, ?int $walletId = null): array
     {
         $dashboard = [
             'summary' => $this->repository->monthlySummary($employeeId, $month),
@@ -65,6 +65,33 @@ class PersonalFinanceModel
             $dashboard['pages'] = $pages;
             $dashboard['page'] = $page;
             $dashboard['count'] = $count;
+        } elseif ($tab === 'wallets') {
+            $wallets = $this->repository->walletFinancials($employeeId, $month);
+            $currentTotal = array_sum(array_map(static fn (array $wallet): float => (float) $wallet['current_spending'], $wallets));
+            $previousTotal = array_sum(array_map(static fn (array $wallet): float => (float) $wallet['previous_spending'], $wallets));
+            foreach ($wallets as &$wallet) {
+                $wallet['current_share'] = $currentTotal > 0 ? round((float) $wallet['current_spending'] / $currentTotal * 100, 1) : 0.0;
+                $wallet['previous_share'] = $previousTotal > 0 ? round((float) $wallet['previous_spending'] / $previousTotal * 100, 1) : 0.0;
+            }
+            unset($wallet);
+            $dashboard['walletFinancials'] = $wallets;
+            $dashboard['totalBalance'] = array_sum(array_map(static fn (array $wallet): float => (float) $wallet['balance'], $wallets));
+            $dashboard['selectedWallet'] = null;
+            foreach ($wallets as $wallet) {
+                if ((int) $wallet['id'] === $walletId) {
+                    $dashboard['selectedWallet'] = $wallet;
+                    break;
+                }
+            }
+            if ($dashboard['selectedWallet'] !== null) {
+                $count = $this->repository->countTransactions($employeeId, $walletId);
+                $pages = max(1, (int) ceil($count / 12));
+                $page = min(max(1, $page), $pages);
+                $dashboard['transactions'] = $this->repository->findTransactions($employeeId, $page, 12, $walletId);
+                $dashboard['pages'] = $pages;
+                $dashboard['page'] = $page;
+                $dashboard['count'] = $count;
+            }
         } elseif ($tab === 'budget') {
             $items = $this->repository->findBudgetItems($employeeId, $month);
             $dashboard['budgetItems'] = $items;
@@ -253,20 +280,9 @@ class PersonalFinanceModel
     /** @param mixed $walletInput */
     private function walletIdForTransaction(int $employeeId, $walletInput): ?int
     {
-        $quickWallets = [
-            'quick:cash' => ['Cash', 'cash'],
-            'quick:bank' => ['Bank', 'bank'],
-            'quick:e_wallet' => ['E-wallet', 'e_wallet'],
-        ];
         $value = (string) $walletInput;
-        if (isset($quickWallets[$value])) {
-            [$baseName, $type] = $quickWallets[$value];
-
-            return $this->repository->addWallet(
-                $employeeId,
-                $this->nextWalletName($baseName, $this->repository->walletNames($employeeId)),
-                $type
-            );
+        if (str_starts_with($value, 'quick:')) {
+            return $this->createPresetWallet($employeeId, substr($value, 6));
         }
 
         $walletId = filter_var($walletInput, FILTER_VALIDATE_INT);
@@ -276,10 +292,31 @@ class PersonalFinanceModel
             : null;
     }
 
+    public function createPresetWallet(int $employeeId, string $preset): int
+    {
+        $quickWallets = [
+            'cash' => ['Cash', 'cash'],
+            'bank' => ['Bank', 'bank'],
+            'e_wallet' => ['E-wallet', 'e_wallet'],
+        ];
+        if (!isset($quickWallets[$preset])) {
+            throw new InvalidArgumentException('Choose a valid wallet type.');
+        }
+        [$baseName, $type] = $quickWallets[$preset];
+
+        return $this->repository->addWallet(
+            $employeeId,
+            $this->nextWalletName($baseName, $this->repository->walletNames($employeeId)),
+            $type
+        );
+    }
+
     /** @param list<string> $existingNames */
     private function nextWalletName(string $baseName, array $existingNames): string
     {
-        $names = array_flip($existingNames);
+        $names = array_flip(array_map(static function (string $name): string {
+            return str_replace(['Tiền mặt', 'Ngân hàng', 'Ví điện tử'], ['Cash', 'Bank', 'E-wallet'], $name);
+        }, $existingNames));
         if (!isset($names[$baseName])) {
             return $baseName;
         }

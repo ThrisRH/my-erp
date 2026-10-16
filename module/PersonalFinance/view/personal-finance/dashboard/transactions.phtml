@@ -1,12 +1,41 @@
-<?php use PersonalFinance\View\Helper\CategoryIcons; ?>
-<section class="pf-panel"><div class="pf-section-head"><div><p class="pf-eyebrow" data-i18n="finance.history">HISTORY</p><h2 data-i18n="finance.transactions">Transactions</h2><p class="pf-subtitle"><?= (int) $dashboard['count'] ?> <span data-i18n="finance.transactionCount">transactions · newest first</span></p></div></div>
-<?php $lastMonth = null; ?>
-<?php if ($dashboard['transactions'] === []): ?><p class="pf-empty" data-i18n="finance.noTransactions">No transactions yet.</p><?php endif; ?>
-<?php foreach ($dashboard['transactions'] as $transaction): ?>
-    <?php $group = substr($transaction['occurred_on'], 0, 7); if ($group !== $lastMonth): $lastMonth = $group; ?>
-        <h3 class="pf-month-divider"><span data-i18n="finance.monthPrefix">Month</span> <?= $this->escapeHtml(date('m/Y', strtotime($group . '-01'))) ?></h3>
+<?php
+use PersonalFinance\View\Helper\CategoryIcons;
+use PersonalFinance\View\Helper\WalletLabels;
+
+$listTab = $listTab ?? 'transactions';
+$listExtra = $listExtra ?? [];
+$listQuery = array_merge(['tab' => $listTab, 'month' => $month->format('Y-m')], $listExtra);
+?>
+<section class="pf-panel pf-transaction-list">
+    <div class="pf-section-head">
+        <div>
+            <p class="pf-eyebrow" data-i18n="finance.history">HISTORY</p>
+            <h2 data-i18n="finance.transactions">Transactions</h2>
+            <p class="pf-subtitle"><?= (int) $dashboard['count'] ?> <span data-i18n="finance.transactionCount">transactions · newest first</span></p>
+        </div>
+    </div>
+    <?php $lastMonth = null; ?>
+    <?php if ($dashboard['transactions'] === []): ?><p class="pf-empty" data-i18n="finance.noTransactions">No transactions yet.</p><?php endif; ?>
+    <?php foreach ($dashboard['transactions'] as $transaction): ?>
+        <?php $group = substr($transaction['occurred_on'], 0, 7); if ($group !== $lastMonth): $lastMonth = $group; ?>
+            <h3 class="pf-month-divider"><span data-i18n="finance.monthPrefix">Month</span> <?= $this->escapeHtml(date('m/Y', strtotime($group . '-01'))) ?></h3>
+        <?php endif; ?>
+        <div class="pf-transaction">
+            <div class="pf-category-icon"><?= CategoryIcons::svg($transaction['category_icon']) ?></div>
+            <div class="pf-transaction-main">
+                <strong><?= $this->escapeHtml($transaction['category_name']) ?></strong>
+                <span><span <?php if (WalletLabels::key($transaction['wallet_name']) !== null): ?>data-i18n="<?= WalletLabels::key($transaction['wallet_name']) ?>"<?php endif; ?>><?= $this->escapeHtml(WalletLabels::english($transaction['wallet_name'])) ?></span> · <?php if ($transaction['notes']): ?><?= $this->escapeHtml($transaction['notes']) ?><?php else: ?><span data-i18n="finance.noNotes">No notes</span><?php endif; ?></span>
+            </div>
+            <time datetime="<?= $this->escapeHtmlAttr($transaction['occurred_on']) ?>"><?= $this->escapeHtml(date('d/m/Y', strtotime($transaction['occurred_on']))) ?></time>
+            <strong class="<?= $transaction['transaction_type'] === 'income' ? 'pf-income' : 'pf-expense' ?>"><?= $transaction['transaction_type'] === 'income' ? '+' : '−' ?><?= number_format((float) $transaction['amount'], 0, ',', '.') ?> ₫</strong>
+            <a class="pf-text-button" href="<?= $this->url('personal-finance', [], ['query' => array_merge($listQuery, ['page' => $dashboard['page'], 'edit' => $transaction['id']])]) ?>" data-i18n="finance.edit">Edit</a>
+        </div>
+    <?php endforeach; ?>
+    <?php if ($dashboard['pages'] > 1): ?>
+        <nav class="pf-pagination" aria-label="Transaction pages" data-i18n-aria-label="finance.transactionPage">
+            <?php for ($p = 1; $p <= $dashboard['pages']; $p++): ?>
+                <a href="<?= $this->url('personal-finance', [], ['query' => array_merge($listQuery, ['page' => $p])]) ?>" class="<?= $p === $dashboard['page'] ? 'is-active' : '' ?>" <?= $p === $dashboard['page'] ? 'aria-current="page"' : '' ?>><?= $p ?></a>
+            <?php endfor; ?>
+        </nav>
     <?php endif; ?>
-    <div class="pf-transaction"><div class="pf-category-icon"><?= CategoryIcons::svg($transaction['category_icon']) ?></div><div class="pf-transaction-main"><strong><?= $this->escapeHtml($transaction['category_name']) ?></strong><span><?= $this->escapeHtml($transaction['wallet_name']) ?> · <?= $this->escapeHtml($transaction['notes'] ?: 'No notes') ?></span></div><time><?= $this->escapeHtml(date('d/m/Y', strtotime($transaction['occurred_on']))) ?></time><strong class="<?= $transaction['transaction_type'] === 'income' ? 'pf-income' : 'pf-expense' ?>"><?= $transaction['transaction_type'] === 'income' ? '+' : '−' ?><?= number_format((float) $transaction['amount'], 0, ',', '.') ?> ₫</strong><a class="pf-text-button" href="<?= $this->url('personal-finance', [], ['query' => ['tab' => 'transactions', 'month' => $month->format('Y-m'), 'page' => $dashboard['page'], 'edit' => $transaction['id']]]) ?>" data-i18n="finance.edit">Edit</a></div>
-<?php endforeach; ?>
-<?php if ($dashboard['pages'] > 1): ?><nav class="pf-pagination" aria-label="Transaction pages"><?php for ($p = 1; $p <= $dashboard['pages']; $p++): ?><a href="<?= $this->url('personal-finance', [], ['query' => ['tab' => 'transactions', 'month' => $month->format('Y-m'), 'page' => $p]]) ?>" class="<?= $p === $dashboard['page'] ? 'is-active' : '' ?>" <?= $p === $dashboard['page'] ? 'aria-current="page"' : '' ?>><?= $p ?></a><?php endfor; ?></nav><?php endif; ?>
 </section>

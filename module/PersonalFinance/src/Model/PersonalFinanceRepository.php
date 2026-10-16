@@ -65,7 +65,7 @@ class PersonalFinanceRepository
     }
 
     /** @return list<array<string, mixed>> */
-    public function findTransactions(int $employeeId, int $page, int $perPage): array
+    public function findTransactions(int $employeeId, int $page, int $perPage, ?int $walletId = null): array
     {
         $offset = ($page - 1) * $perPage;
         $statement = $this->connection->prepare(
@@ -76,10 +76,13 @@ class PersonalFinanceRepository
              INNER JOIN personal_finance_categories AS category ON category.id = transaction.category_id
              INNER JOIN personal_finance_wallets AS wallet ON wallet.id = transaction.wallet_id
              WHERE transaction.employee_id = :employee_id
+               AND (:wallet_id IS NULL OR transaction.wallet_id = :filtered_wallet_id)
              ORDER BY transaction.occurred_on DESC, transaction.id DESC
              LIMIT :limit OFFSET :offset"
         );
         $statement->bindValue(':employee_id', $employeeId, PDO::PARAM_INT);
+        $statement->bindValue(':wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $statement->bindValue(':filtered_wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $statement->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
         $statement->execute();
@@ -90,12 +93,16 @@ class PersonalFinanceRepository
         return $transactions;
     }
 
-    public function countTransactions(int $employeeId): int
+    public function countTransactions(int $employeeId, ?int $walletId = null): int
     {
         $statement = $this->connection->prepare(
-            'SELECT COUNT(*) FROM personal_finance_transactions WHERE employee_id = :employee_id'
+            'SELECT COUNT(*) FROM personal_finance_transactions
+             WHERE employee_id = :employee_id AND (:wallet_id IS NULL OR wallet_id = :filtered_wallet_id)'
         );
-        $statement->execute(['employee_id' => $employeeId]);
+        $statement->bindValue(':employee_id', $employeeId, PDO::PARAM_INT);
+        $statement->bindValue(':wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $statement->bindValue(':filtered_wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $statement->execute();
 
         return (int) $statement->fetchColumn();
     }
@@ -131,6 +138,43 @@ class PersonalFinanceRepository
              WHERE employee_id = :employee_id ORDER BY created_at ASC, id ASC'
         );
         $statement->execute(['employee_id' => $employeeId]);
+
+        return $statement->fetchAll();
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function walletFinancials(int $employeeId, DateTimeImmutable $month): array
+    {
+        $currentStart = $month->modify('first day of this month')->format('Y-m-d');
+        $currentEnd = $month->modify('first day of next month')->format('Y-m-d');
+        $previousStart = $month->modify('first day of previous month')->format('Y-m-d');
+        $statement = $this->connection->prepare(
+            "SELECT wallet.id, wallet.name, wallet.wallet_type,
+                    COALESCE(SUM(CASE WHEN transaction.occurred_on <= CURRENT_DATE()
+                        AND transaction.transaction_type = 'income' THEN transaction.amount
+                        WHEN transaction.occurred_on <= CURRENT_DATE()
+                        AND transaction.transaction_type = 'expense' THEN -transaction.amount
+                        ELSE 0 END), 0) AS balance,
+                    COALESCE(SUM(CASE WHEN transaction.transaction_type = 'expense'
+                        AND transaction.occurred_on >= :current_start
+                        AND transaction.occurred_on < :current_end THEN transaction.amount ELSE 0 END), 0) AS current_spending,
+                    COALESCE(SUM(CASE WHEN transaction.transaction_type = 'expense'
+                        AND transaction.occurred_on >= :previous_start
+                        AND transaction.occurred_on < :previous_end THEN transaction.amount ELSE 0 END), 0) AS previous_spending
+             FROM personal_finance_wallets AS wallet
+             LEFT JOIN personal_finance_transactions AS transaction
+                ON transaction.wallet_id = wallet.id AND transaction.employee_id = wallet.employee_id
+             WHERE wallet.employee_id = :employee_id
+             GROUP BY wallet.id, wallet.name, wallet.wallet_type
+             ORDER BY wallet.created_at ASC, wallet.id ASC"
+        );
+        $statement->execute([
+            'employee_id' => $employeeId,
+            'current_start' => $currentStart,
+            'current_end' => $currentEnd,
+            'previous_start' => $previousStart,
+            'previous_end' => $currentStart,
+        ]);
 
         return $statement->fetchAll();
     }

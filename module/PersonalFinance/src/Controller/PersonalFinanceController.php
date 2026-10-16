@@ -10,6 +10,7 @@ use PersonalFinance\Controller\PersonalFinance\BudgetAction;
 use PersonalFinance\Controller\PersonalFinance\CategoryAction;
 use PersonalFinance\Controller\PersonalFinance\IndexAction;
 use PersonalFinance\Controller\PersonalFinance\TransactionAction;
+use PersonalFinance\Controller\PersonalFinance\WalletAction;
 use PersonalFinance\Model\PersonalFinanceModel;
 
 class PersonalFinanceController extends AbstractActionController
@@ -29,6 +30,11 @@ class PersonalFinanceController extends AbstractActionController
     public function updateAction()
     {
         return (new TransactionAction())->update($this, $this->model());
+    }
+
+    public function createWalletAction()
+    {
+        return (new WalletAction())->create($this, $this->model());
     }
 
     public function addCategoryAction()

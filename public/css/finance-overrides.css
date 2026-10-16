@@ -102,6 +102,45 @@
 .pf-donut-legend strong { font-size: 12px; font-variant-numeric: tabular-nums; }
 [data-theme="dark"] .pf-donut::after { background: #192431; }
 
+.pf-wallet-overview { margin-bottom: var(--s3); }
+.pf-wallet-intro { display: flex; align-items: end; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s2); }
+.pf-wallet-intro h2 { font-size: 24px; margin-bottom: var(--s1); }
+.pf-wallet-create { margin-top: var(--s2); }
+.pf-wallet-total { display: grid; gap: .25rem; min-width: min(100%, 16rem); }
+.pf-wallet-total span, .pf-wallet-total small { font-size: 12px; color: var(--muted); }
+.pf-wallet-total strong { font-size: 24px; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.pf-wallet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: var(--s2); }
+.pf-wallet-card { display: flex; flex-direction: column; min-width: 0; padding: var(--s3); border: 1px solid var(--line); border-radius: .75rem; background: var(--surface); transition: border-color .15s, transform .15s; }
+.pf-wallet-card:hover, .pf-wallet-card:focus-visible, .pf-wallet-card.is-selected { border-color: var(--blue); }
+.pf-wallet-card:hover { transform: translateY(-2px); }
+.pf-wallet-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--s2); }
+.pf-wallet-symbol { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: .75rem; color: var(--blue); background: var(--blue-soft); }
+.pf-wallet-open { display: grid; place-items: center; color: var(--muted); }
+.pf-wallet-name { color: var(--ink); font-size: 16px; font-weight: 700; margin-bottom: var(--s2); overflow-wrap: anywhere; }
+.pf-wallet-balance-label, .pf-wallet-share-heading { color: var(--muted); font-size: 12px; }
+.pf-wallet-balance { color: var(--ink); font-size: 24px; line-height: 1.25; letter-spacing: -.03em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pf-wallet-balance.pf-expense { color: #b35f62; }
+.pf-wallet-divider { height: 1px; background: var(--line); margin: var(--s3) 0 var(--s2); }
+.pf-wallet-share-heading { margin-bottom: var(--s2); }
+.pf-wallet-period { display: flex; justify-content: space-between; gap: var(--s1); font-size: 14px; font-variant-numeric: tabular-nums; }
+.pf-wallet-period strong { color: var(--ink); }
+.pf-wallet-period-previous { margin-top: var(--s2); }
+.pf-wallet-track { display: block; height: .5rem; overflow: hidden; margin-top: var(--s1); border-radius: 1rem; background: var(--blue-soft); }
+.pf-wallet-track > span { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+.pf-wallet-track-previous > span { background: #8e9baa; }
+.pf-wallet-spent { display: block; margin-top: .5rem; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.pf-wallet-detail { margin-top: var(--s4); }
+.pf-wallet-detail-head { display: flex; justify-content: space-between; align-items: end; gap: var(--s2); margin-bottom: var(--s2); }
+.pf-wallet-detail-head h2 { font-size: 20px; overflow-wrap: anywhere; }
+.pf-wallet-choices { display: grid; gap: var(--s1); margin-top: var(--s3); }
+.pf-wallet-choice { display: flex; align-items: center; gap: var(--s1); width: 100%; padding: var(--s2); border: 1px solid var(--line); border-radius: .5rem; background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; text-align: left; }
+.pf-wallet-choice:hover { border-color: var(--blue); background: var(--blue-soft); }
+.pf-wallet-choice .ui-icon { margin-left: auto; }
+[data-theme="dark"] .pf-wallet-choice { background: #192431; color: var(--ink); border-color: var(--line); }
+[data-theme="dark"] .pf-wallet-choice:hover { border-color: var(--blue); background: var(--blue-soft); }
+[data-theme="dark"] .pf-wallet-card { background: #192431; border-color: var(--line); }
+[data-theme="dark"] .pf-wallet-card:hover, [data-theme="dark"] .pf-wallet-card:focus-visible, [data-theme="dark"] .pf-wallet-card.is-selected { border-color: var(--blue); }
+
 @media (max-width: 760px) {
     .pf-finance-summary { grid-template-columns: 1fr; }
     .pf-finance-summary-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); border-left: 0; border-top: 1px solid var(--line); }
