@@ -12,16 +12,16 @@ $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $isFinance = $financeUrl !== null && str_starts_with($path, $financeUrl);
 ?>
 <?= $this->doctype() ?>
-<html lang="vi" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="utf-8">
     <script>
         document.documentElement.dataset.theme = localStorage.getItem('my-erp-theme') || 'light';
-        document.documentElement.lang = localStorage.getItem('my-erp-locale') || 'vi';
+        document.documentElement.lang = localStorage.getItem('my-erp-locale') || 'en';
     </script>
     <?= $this->headTitle('My ERP')->setSeparator(' · ')->setAutoEscape(false) ?>
     <?= $this->headMeta()->appendName('viewport', 'width=device-width, initial-scale=1') ?>
-    <?= $this->headLink(['rel' => 'icon', 'type' => 'image/png', 'href' => $this->basePath('img/my-erp-favicon.png')])
+    <?= $this->headLink()->appendFavicon($this->basePath('img/my-erp-favicon.png'), 'image/png')
         ->appendStylesheet($this->basePath('css/style.css'))
         ->appendStylesheet($this->basePath('css/finance-overrides.css')) ?>
 </head>
@@ -32,20 +32,20 @@ $isFinance = $financeUrl !== null && str_starts_with($path, $financeUrl);
                 <img class="app-logo-light" src="<?= $this->basePath('img/my-erp-sidebar-logo-light.png') ?>" alt="My ERP">
                 <img class="app-logo-dark" src="<?= $this->basePath('img/my-erp-sidebar-logo.png') ?>" alt="">
             </a>
-            <p class="app-nav-caption" data-i18n="app.navigation">ỨNG DỤNG</p>
-            <nav aria-label="Điều hướng chính">
-                <a href="<?= $this->url('home') ?>" <?= $isFinance ? '' : 'aria-current="page"' ?> data-i18n="app.overview">Tổng quan</a>
+            <p class="app-nav-caption" data-i18n="app.navigation">APPLICATIONS</p>
+            <nav aria-label="Primary navigation">
+                <a href="<?= $this->url('home') ?>" <?= $isFinance ? '' : 'aria-current="page"' ?> data-i18n="app.overview">Overview</a>
                 <?php if ($financeUrl !== null): ?>
-                    <a href="<?= $financeUrl ?>" <?= $isFinance ? 'aria-current="page"' : '' ?> data-i18n="app.personalFinance">Thu chi cá nhân</a>
+                    <a href="<?= $financeUrl ?>" <?= $isFinance ? 'aria-current="page"' : '' ?> data-i18n="app.personalFinance">Personal finance</a>
                 <?php endif; ?>
             </nav>
-            <div class="app-preferences" aria-label="Tùy chọn giao diện">
-                <button type="button" class="app-preference-button" data-theme-toggle aria-label="Đổi chế độ sáng tối">
-                    <span aria-hidden="true">◐</span><span data-i18n="app.theme">Giao diện</span>
+            <div class="app-preferences" aria-label="Interface preferences">
+                <button type="button" class="app-preference-button" data-theme-toggle aria-label="Toggle light and dark mode">
+                    <span aria-hidden="true">◐</span><span data-i18n="app.theme">Theme</span>
                 </button>
                 <label class="app-language-select">
-                    <span class="sr-only" data-i18n="app.language">Ngôn ngữ</span>
-                    <select data-language-select aria-label="Ngôn ngữ"><option value="vi">VI</option><option value="en">EN</option></select>
+                    <span class="sr-only" data-i18n="app.language">Language</span>
+                    <select data-language-select aria-label="Language"><option value="vi">VI</option><option value="en">EN</option></select>
                 </label>
             </div>
         </aside>

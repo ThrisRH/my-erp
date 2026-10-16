@@ -56,6 +56,60 @@
       'finance.noData': 'Chưa có dữ liệu trong kỳ này.',
       'finance.spendingIncreased': 'Chi tiêu tăng',
       'finance.spendingDecreased': 'Chi tiêu giảm',
+      'finance.personalFinance': 'TÀI CHÍNH CÁ NHÂN',
+      'finance.transactionCount': 'giao dịch · mới nhất trước',
+      'finance.noTransactions': 'Chưa có giao dịch.',
+      'finance.transactionPage': 'Trang giao dịch',
+      'finance.monthPrefix': 'Tháng',
+      'finance.budgetDescription': 'Chỉ cần nhập hạn mức cho các mục bạn muốn theo dõi.',
+      'finance.spent': 'Đã chi',
+      'finance.remaining': 'Còn lại',
+      'finance.budgetLimit': 'Hạn mức (₫)',
+      'finance.noBudget': 'Chưa đặt',
+      'finance.categoryDescription': 'Sắp xếp giao dịch theo nhóm phù hợp với bạn.',
+      'finance.incomeCategories': 'Khoản thu',
+      'finance.expenseCategories': 'Khoản chi',
+      'finance.inCategory': 'Trong',
+      'finance.otherCategory': 'danh mục khác',
+      'finance.createCategoryTitle': 'Tạo danh mục',
+      'finance.categoryName': 'Tên danh mục',
+      'finance.type': 'Loại',
+      'finance.parentCategory': 'Danh mục cha',
+      'finance.rootCategory': 'Danh mục gốc',
+      'finance.icon': 'Biểu tượng',
+      'finance.create': 'Tạo danh mục',
+      'finance.close': 'Đóng',
+      'finance.selectMonth': 'Chọn tháng và năm',
+      'finance.selectDate': 'Chọn ngày giao dịch',
+      'finance.previousYear': 'Năm trước',
+      'finance.nextYear': 'Năm sau',
+      'finance.previousMonth': 'Tháng trước',
+      'finance.nextMonth': 'Tháng sau',
+      'finance.weekday.mon': 'T2',
+      'finance.weekday.tue': 'T3',
+      'finance.weekday.wed': 'T4',
+      'finance.weekday.thu': 'T5',
+      'finance.weekday.fri': 'T6',
+      'finance.weekday.sat': 'T7',
+      'finance.weekday.sun': 'CN',
+      'finance.quickCreate': 'Tạo nhanh',
+      'finance.quickCash': '+ Tiền mặt',
+      'finance.quickBank': '+ Ngân hàng',
+      'finance.quickEWallet': '+ Ví điện tử',
+      'finance.notice.saved': 'Đã thêm giao dịch.',
+      'finance.notice.updated': 'Đã cập nhật giao dịch.',
+      'finance.notice.invalid': 'Vui lòng kiểm tra thông tin giao dịch.',
+      'finance.notice.budgetSaved': 'Đã lưu ngân sách.',
+      'finance.notice.budgetCloned': 'Đã sao chép ngân sách tháng trước.',
+      'finance.notice.budgetInvalid': 'Ngân sách không hợp lệ.',
+      'finance.notice.categorySaved': 'Đã tạo danh mục.',
+      'finance.notice.categoryInvalid': 'Vui lòng kiểm tra tên, loại, icon và danh mục cha.',
+      'finance.notice.noEmployee': 'Chưa có nhân viên đang hoạt động.',
+      'finance.spendingBreakdown': 'CƠ CẤU CHI TIÊU',
+      'finance.spendingByCategory': 'Chi tiêu theo danh mục',
+      'finance.vsFirstWeek': 'so với tuần đầu của tháng',
+      'finance.vsFirstMonth': 'so với tháng đầu của năm',
+      'finance.millionVnd': 'triệu VND',
     },
     en: {
       'app.navigation': 'APPLICATIONS',
@@ -108,12 +162,66 @@
       'finance.noData': 'No data for this period.',
       'finance.spendingIncreased': 'Spending increased',
       'finance.spendingDecreased': 'Spending decreased',
+      'finance.personalFinance': 'PERSONAL FINANCE',
+      'finance.transactionCount': 'transactions · newest first',
+      'finance.noTransactions': 'No transactions yet.',
+      'finance.transactionPage': 'Transaction pages',
+      'finance.monthPrefix': 'Month',
+      'finance.budgetDescription': 'Set limits only for the categories you want to track.',
+      'finance.spent': 'Spent',
+      'finance.remaining': 'Remaining',
+      'finance.budgetLimit': 'Limit (₫)',
+      'finance.noBudget': 'Not set',
+      'finance.categoryDescription': 'Organize transactions into groups that work for you.',
+      'finance.incomeCategories': 'Income categories',
+      'finance.expenseCategories': 'Expense categories',
+      'finance.inCategory': 'In',
+      'finance.otherCategory': 'another category',
+      'finance.createCategoryTitle': 'Create category',
+      'finance.categoryName': 'Category name',
+      'finance.type': 'Type',
+      'finance.parentCategory': 'Parent category',
+      'finance.rootCategory': 'Root category',
+      'finance.icon': 'Icon',
+      'finance.create': 'Create category',
+      'finance.close': 'Close',
+      'finance.selectMonth': 'Select month and year',
+      'finance.selectDate': 'Select transaction date',
+      'finance.previousYear': 'Previous year',
+      'finance.nextYear': 'Next year',
+      'finance.previousMonth': 'Previous month',
+      'finance.nextMonth': 'Next month',
+      'finance.weekday.mon': 'Mon',
+      'finance.weekday.tue': 'Tue',
+      'finance.weekday.wed': 'Wed',
+      'finance.weekday.thu': 'Thu',
+      'finance.weekday.fri': 'Fri',
+      'finance.weekday.sat': 'Sat',
+      'finance.weekday.sun': 'Sun',
+      'finance.quickCreate': 'Quick create',
+      'finance.quickCash': '+ Cash',
+      'finance.quickBank': '+ Bank',
+      'finance.quickEWallet': '+ E-wallet',
+      'finance.notice.saved': 'Transaction added.',
+      'finance.notice.updated': 'Transaction updated.',
+      'finance.notice.invalid': 'Check the transaction details and try again.',
+      'finance.notice.budgetSaved': 'Budget saved.',
+      'finance.notice.budgetCloned': 'Previous month budget copied.',
+      'finance.notice.budgetInvalid': 'Budget details are invalid.',
+      'finance.notice.categorySaved': 'Category created.',
+      'finance.notice.categoryInvalid': 'Check the category name, type, icon, and parent category.',
+      'finance.notice.noEmployee': 'No active employee is available.',
+      'finance.spendingBreakdown': 'SPENDING BREAKDOWN',
+      'finance.spendingByCategory': 'Spending by category',
+      'finance.vsFirstWeek': 'vs the first week of the month',
+      'finance.vsFirstMonth': 'vs the first month of the year',
+      'finance.millionVnd': 'million VND',
     },
   };
 
   const root = document.documentElement;
   const translate = (locale) => {
-    const dictionary = messages[locale] || messages.vi;
+    const dictionary = messages[locale] || messages.en;
     document.querySelectorAll('[data-i18n]').forEach((element) => {
       const message = dictionary[element.dataset.i18n];
       if (message) element.textContent = message;
@@ -122,7 +230,16 @@
       const message = dictionary[element.dataset.i18nAriaLabel];
       if (message) element.setAttribute('aria-label', message);
     });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach((element) => {
+      const message = dictionary[element.dataset.i18nPlaceholder];
+      if (message) element.setAttribute('placeholder', message);
+    });
+    document.querySelectorAll('[data-i18n-label]').forEach((element) => {
+      const message = dictionary[element.dataset.i18nLabel];
+      if (message) element.setAttribute('label', message);
+    });
     root.lang = locale;
+    window.MyErpI18n = { locale, t: (key) => dictionary[key] || key };
     document.dispatchEvent(new CustomEvent('my-erp:locale-change', { detail: { locale } }));
   };
 
@@ -138,7 +255,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     const theme = localStorage.getItem(storage.theme) || 'light';
-    const locale = localStorage.getItem(storage.locale) || 'vi';
+    const locale = localStorage.getItem(storage.locale) || 'en';
     setTheme(theme);
     translate(locale);
 

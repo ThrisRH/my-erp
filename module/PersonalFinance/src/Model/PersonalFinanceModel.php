@@ -254,9 +254,9 @@ class PersonalFinanceModel
     private function walletIdForTransaction(int $employeeId, $walletInput): ?int
     {
         $quickWallets = [
-            'quick:cash' => ['Tiền mặt', 'cash'],
-            'quick:bank' => ['Ngân hàng', 'bank'],
-            'quick:e_wallet' => ['Ví điện tử', 'e_wallet'],
+            'quick:cash' => ['Cash', 'cash'],
+            'quick:bank' => ['Bank', 'bank'],
+            'quick:e_wallet' => ['E-wallet', 'e_wallet'],
         ];
         $value = (string) $walletInput;
         if (isset($quickWallets[$value])) {
