@@ -219,7 +219,7 @@ class PersonalFinanceRepository
     public function findCategories(int $employeeId, string $transactionType): array
     {
         $statement = $this->connection->prepare(
-            "SELECT id, name, color, icon, parent_id, transaction_type
+            "SELECT id, employee_id, name, color, icon, parent_id, transaction_type, is_system
              FROM personal_finance_categories
              WHERE transaction_type = :transaction_type
                AND (employee_id IS NULL OR employee_id = :employee_id)
@@ -240,7 +240,7 @@ class PersonalFinanceRepository
     public function findCategory(int $employeeId, int $categoryId, string $transactionType): ?array
     {
         $statement = $this->connection->prepare(
-            "SELECT id, name
+            "SELECT id, employee_id, name, color, icon, parent_id, transaction_type, is_system
              FROM personal_finance_categories
              WHERE id = :category_id
                AND transaction_type = :transaction_type
@@ -266,6 +266,76 @@ class PersonalFinanceRepository
              VALUES (:employee_id, :parent_id, :code, :name, :transaction_type, :icon)'
         );
         $statement->execute($category);
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findOwnedCategory(int $employeeId, int $categoryId): ?array
+    {
+        $statement = $this->connection->prepare(
+            'SELECT id, employee_id, name, icon, parent_id, transaction_type
+             FROM personal_finance_categories
+             WHERE id = :category_id AND employee_id = :employee_id AND is_system = 0'
+        );
+        $statement->execute(['category_id' => $categoryId, 'employee_id' => $employeeId]);
+        $category = $statement->fetch();
+
+        return $category === false ? null : $category;
+    }
+
+    public function updateOwnedCategory(array $category): void
+    {
+        $statement = $this->connection->prepare(
+            'UPDATE personal_finance_categories
+             SET name = :name, icon = :icon, parent_id = :parent_id
+             WHERE id = :id AND employee_id = :employee_id AND is_system = 0'
+        );
+        $statement->execute($category);
+    }
+
+    public function categoryHasReferences(int $categoryId): bool
+    {
+        $statement = $this->connection->prepare(
+            'SELECT EXISTS(SELECT 1 FROM personal_finance_transactions WHERE category_id = :transaction_category_id)
+                    OR EXISTS(SELECT 1 FROM personal_finance_budget_items WHERE category_id = :budget_category_id)
+                    OR EXISTS(SELECT 1 FROM personal_finance_categories WHERE parent_id = :child_category_id)'
+        );
+        $statement->execute([
+            'transaction_category_id' => $categoryId,
+            'budget_category_id' => $categoryId,
+            'child_category_id' => $categoryId,
+        ]);
+
+        return (bool) $statement->fetchColumn();
+    }
+
+    public function parentChainContains(int $categoryId, int $possibleChildId): bool
+    {
+        $currentId = $possibleChildId;
+        for ($depth = 0; $depth < 100 && $currentId > 0; $depth++) {
+            if ($currentId === $categoryId) {
+                return true;
+            }
+            $statement = $this->connection->prepare(
+                'SELECT parent_id FROM personal_finance_categories WHERE id = :category_id'
+            );
+            $statement->execute(['category_id' => $currentId]);
+            $parentId = $statement->fetchColumn();
+            if ($parentId === false) {
+                return false;
+            }
+            $currentId = (int) $parentId;
+        }
+
+        return $currentId > 0;
+    }
+
+    public function deleteOwnedCategory(int $employeeId, int $categoryId): void
+    {
+        $statement = $this->connection->prepare(
+            'DELETE FROM personal_finance_categories
+             WHERE id = :category_id AND employee_id = :employee_id AND is_system = 0'
+        );
+        $statement->execute(['category_id' => $categoryId, 'employee_id' => $employeeId]);
     }
 
     /** @param array<string, string|int> $transaction */

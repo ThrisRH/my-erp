@@ -27,6 +27,37 @@ function filterOptions(typeInput, selectInput) {
 filterOptions('transaction_type', 'category_id');
 filterOptions('category-type', 'category-parent');
 
+const categoryEditModal = document.getElementById('category-edit-modal');
+const categoryDeleteModal = document.getElementById('category-delete-modal');
+document.querySelectorAll('[data-category-edit]').forEach(button => {
+  button.addEventListener('click', () => {
+    if (!categoryEditModal) return;
+    categoryEditModal.querySelector('[data-edit-category-id]').value = button.dataset.id;
+    categoryEditModal.querySelector('[data-edit-category-name]').value = button.dataset.name;
+    categoryEditModal.querySelectorAll('[data-edit-category-icon]').forEach(input => {
+      input.checked = input.value === button.dataset.icon;
+    });
+    const parent = categoryEditModal.querySelector('[data-edit-category-parent]');
+    [...parent.options].forEach(option => {
+      const unavailable = option.value === button.dataset.id
+        || (!!option.dataset.type && option.dataset.type !== button.dataset.type);
+      option.hidden = unavailable;
+      option.disabled = unavailable;
+    });
+    parent.value = parent.querySelector(`option[value="${button.dataset.parentId}"]:not([disabled])`)
+      ? button.dataset.parentId : '0';
+    categoryEditModal.showModal();
+  });
+});
+document.querySelectorAll('[data-category-delete]').forEach(button => {
+  button.addEventListener('click', () => {
+    if (!categoryDeleteModal) return;
+    categoryDeleteModal.querySelector('[data-delete-category-id]').value = button.dataset.id;
+    categoryDeleteModal.querySelector('[data-delete-category-name]').textContent = button.dataset.name;
+    categoryDeleteModal.showModal();
+  });
+});
+
 const monthPicker = document.getElementById('month-picker-modal');
 const monthInput = document.getElementById('month');
 const monthTrigger = document.querySelector('[data-month-picker]');
