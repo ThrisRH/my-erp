@@ -33,10 +33,10 @@ foreach ($spending as $index => $item) {
         </div></div>
     <?php endif; ?>
 </section>
-<div class="pf-chart-grid">
+<div class="pf-chart-grid pf-trend-split">
     <?php foreach (['weeklyTrend' => ['Weekly trend', 'Week'], 'monthlyTrend' => ['Monthly trend', 'Month']] as $key => $meta): ?>
         <?php $rows = $dashboard[$key]; $max = 1; foreach ($rows as $row) { $max = max($max, (float) $row['income'], (float) $row['expense']); } ?>
-        <section class="pf-panel pf-chart <?= $key === 'weeklyTrend' ? 'pf-chart-primary' : 'pf-chart-secondary' ?>" aria-label="<?= $meta[0] ?>"><div class="pf-section-head"><div><p class="pf-section-kicker" data-i18n="<?= $key === 'weeklyTrend' ? 'finance.monthlyAnalysis' : 'finance.yearlyView' ?>"><?= $key === 'weeklyTrend' ? 'Monthly analysis' : 'Year at a glance' ?></p><h2 data-i18n="<?= $key === 'weeklyTrend' ? 'finance.weeklyTrend' : 'finance.monthlyTrend' ?>"><?= $meta[0] ?></h2></div><span class="pf-chart-legend"><i></i> <span data-i18n="finance.income">Income</span> <i></i> <span data-i18n="finance.expense">Expense</span></span></div>
+        <section class="pf-panel pf-chart <?= $key === 'weeklyTrend' ? 'pf-chart-weekly' : 'pf-chart-monthly' ?>" aria-label="<?= $meta[0] ?>"><div class="pf-section-head"><div><p class="pf-section-kicker" data-i18n="<?= $key === 'weeklyTrend' ? 'finance.monthlyAnalysis' : 'finance.yearlyView' ?>"><?= $key === 'weeklyTrend' ? 'Monthly analysis' : 'Year at a glance' ?></p><h2 data-i18n="<?= $key === 'weeklyTrend' ? 'finance.weeklyTrend' : 'finance.monthlyTrend' ?>"><?= $meta[0] ?></h2></div><span class="pf-chart-legend"><i></i> <span data-i18n="finance.income">Income</span> <i></i> <span data-i18n="finance.expense">Expense</span></span></div>
             <?php if ($rows === []): ?><p class="pf-empty" data-i18n="finance.noData">No data for this period.</p><?php else: ?>
                 <div class="pf-chart-scroll"><div class="pf-bars" role="img" aria-label="Income and expense chart: <?= $meta[0] ?>">
                     <?php foreach ($rows as $row): ?><?php $periodLabel = $row['period']; ?><div class="pf-bar-group" title="<?= $this->escapeHtmlAttr($periodLabel) ?>: income <?= number_format((float) $row['income'], 0, ',', '.') ?>, expense <?= number_format((float) $row['expense'], 0, ',', '.') ?> VND"><div class="pf-bar-pair"><div class="pf-bar pf-bar-income" style="--bar-size: <?= max(1, round((float) $row['income'] / $max * 100)) ?>%"></div><div class="pf-bar pf-bar-expense" style="--bar-size: <?= max(1, round((float) $row['expense'] / $max * 100)) ?>%"></div></div><span><?= $this->escapeHtml($periodLabel) ?></span></div><?php endforeach; ?>
@@ -49,3 +49,87 @@ foreach ($spending as $index => $item) {
         </section>
     <?php endforeach; ?>
 </div>
+
+<?php
+$formatCompact = static function (float $amount): string {
+    $abs = abs($amount);
+    if ($abs >= 1_000_000_000) {
+        $val = round($abs / 1_000_000_000, 1);
+        $formatted = (rtrim(rtrim(number_format($val, 1, '.', ''), '0'), '.') ?: '0') . 'B';
+    } elseif ($abs >= 1_000_000) {
+        $val = round($abs / 1_000_000, 1);
+        $formatted = (rtrim(rtrim(number_format($val, 1, '.', ''), '0'), '.') ?: '0') . 'M';
+    } elseif ($abs >= 1_000) {
+        $val = round($abs / 1_000, 1);
+        $formatted = (rtrim(rtrim(number_format($val, 1, '.', ''), '0'), '.') ?: '0') . 'K';
+    } else {
+        $formatted = (string) round($abs);
+    }
+    return ($amount < 0 ? '-' : '') . $formatted;
+};
+
+$dailyMap = [];
+foreach ($dashboard['dailyTotals'] ?? [] as $d) {
+    $dailyMap[$d['period']] = [
+        'income' => (float) $d['income'],
+        'expense' => (float) $d['expense'],
+    ];
+}
+
+$firstOfMonth = new DateTimeImmutable($month->format('Y-m-01'));
+$daysInMonth = (int) $firstOfMonth->format('t');
+$dayOfWeek = (int) $firstOfMonth->format('N'); // 1 (Mon) to 7 (Sun)
+$leadingDays = $dayOfWeek - 1;
+?>
+<section class="pf-panel pf-daily-calendar-section" aria-label="Daily spending calendar">
+    <div class="pf-section-head">
+        <div>
+            <p class="pf-section-kicker" data-i18n="finance.dailyAnalysis">Daily breakdown</p>
+            <h2 data-i18n="finance.dailySpending">Daily spending in month</h2>
+        </div>
+        <span class="pf-chart-legend">
+            <i></i> <span data-i18n="finance.income">Income</span>
+            <i></i> <span data-i18n="finance.expense">Expense</span>
+        </span>
+    </div>
+    <div class="pf-calendar-container">
+        <div class="pf-calendar-weekdays" aria-hidden="true">
+            <span data-i18n="finance.weekday.mon">Mon</span>
+            <span data-i18n="finance.weekday.tue">Tue</span>
+            <span data-i18n="finance.weekday.wed">Wed</span>
+            <span data-i18n="finance.weekday.thu">Thu</span>
+            <span data-i18n="finance.weekday.fri">Fri</span>
+            <span data-i18n="finance.weekday.sat">Sat</span>
+            <span data-i18n="finance.weekday.sun">Sun</span>
+        </div>
+        <div class="pf-calendar-grid">
+            <?php for ($i = 0; $i < $leadingDays; $i++): ?>
+                <div class="pf-calendar-day is-empty"></div>
+            <?php endfor; ?>
+            <?php for ($day = 1; $day <= $daysInMonth; $day++): ?>
+                <?php
+                $dateKey = sprintf('%s-%02d', $month->format('Y-m'), $day);
+                $data = $dailyMap[$dateKey] ?? ['income' => 0.0, 'expense' => 0.0];
+                $inc = (float) $data['income'];
+                $exp = (float) $data['expense'];
+                $net = $inc - $exp;
+                $hasTx = ($inc > 0 || $exp > 0);
+                ?>
+                <div class="pf-calendar-day <?= $hasTx ? 'has-data' : '' ?>">
+                    <span class="pf-day-number"><?= $day ?></span>
+                    <div class="pf-day-flows">
+                        <?php if ($inc > 0): ?>
+                            <span class="pf-day-flow pf-flow-in" title="Income: <?= number_format($inc, 0, ',', '.') ?> VND">+<?= $formatCompact($inc) ?></span>
+                        <?php endif; ?>
+                        <?php if ($exp > 0): ?>
+                            <span class="pf-day-flow pf-flow-out" title="Expense: <?= number_format($exp, 0, ',', '.') ?> VND">-<?= $formatCompact($exp) ?></span>
+                        <?php endif; ?>
+                        <?php if ($hasTx): ?>
+                            <span class="pf-day-net <?= $net >= 0 ? 'pf-income' : 'pf-expense' ?>" title="Net: <?= number_format($net, 0, ',', '.') ?> VND"><?= ($net > 0 ? '+' : '') . $formatCompact($net) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endfor; ?>
+        </div>
+    </div>
+</section>

@@ -77,7 +77,7 @@ foreach ($allCategories as $category) {
         <div class="pf-form-grid">
             <label><span data-i18n="finance.categoryName">Category name</span><input name="name" maxlength="100" data-edit-category-name required></label>
             <label><span data-i18n="finance.parentCategory">Parent category</span><select name="parent_id" data-edit-category-parent><option value="0" data-i18n="finance.rootCategory">Root category</option><?php foreach ($allCategories as $category): ?><option value="<?= (int) $category['id'] ?>" data-type="<?= $this->escapeHtmlAttr($category['transaction_type']) ?>"><?= $this->escapeHtml($category['name']) ?></option><?php endforeach; ?></select></label>
-            <fieldset class="pf-full pf-icon-picker"><legend data-i18n="finance.icon">Icon</legend><?php foreach (CategoryIcons::names() as $icon): ?><label title="<?= $this->escapeHtmlAttr($icon) ?>"><input type="radio" name="icon" value="<?= $this->escapeHtmlAttr($icon) ?>" data-edit-category-icon><span><?= CategoryIcons::svg($icon) ?></span></label><?php endforeach; ?></fieldset>
+            <fieldset class="pf-full pf-icon-picker"><legend data-i18n="finance.icon">Icon</legend><?php foreach (CategoryIcons::names() as $icon): ?><label title="<?= $this->escapeHtmlAttr($icon) ?>"><input type="radio" name="edit_icon" value="<?= $this->escapeHtmlAttr($icon) ?>" data-edit-category-icon><span><?= CategoryIcons::svg($icon) ?></span></label><?php endforeach; ?></fieldset>
         </div>
         <div class="pf-modal-actions"><button type="button" class="pf-button pf-button-secondary" data-modal-close data-i18n="finance.cancel">Cancel</button><button class="pf-button pf-button-primary" data-i18n="finance.saveCategory">Save category</button></div>
     </form>

@@ -39,6 +39,16 @@ class PersonalFinanceController extends AbstractActionController
         return (new WalletAction())->create($this, $this->model());
     }
 
+    public function updateWalletAction()
+    {
+        return (new WalletAction())->update($this, $this->model());
+    }
+
+    public function deleteWalletAction()
+    {
+        return (new WalletAction())->delete($this, $this->model());
+    }
+
     public function addCategoryAction()
     {
         return (new CategoryAction())->handle($this, $this->model());

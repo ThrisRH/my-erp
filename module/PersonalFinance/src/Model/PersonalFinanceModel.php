@@ -103,6 +103,7 @@ class PersonalFinanceModel
                 $this->repository->yearlyMonthlyTotals($employeeId, (int) $month->format('Y'))
             );
             $dashboard['categorySpending'] = $this->repository->categorySpending($employeeId, $month);
+            $dashboard['dailyTotals'] = $this->repository->dailyTotals($employeeId, $month);
         }
 
         return $dashboard;
@@ -144,7 +145,7 @@ class PersonalFinanceModel
         }
 
         $name = trim((string) ($input['name'] ?? ''));
-        $icon = (string) ($input['icon'] ?? 'folder');
+        $icon = (string) ($input['edit_icon'] ?? $input['icon'] ?? $category['icon'] ?? 'folder');
         $parentId = filter_var($input['parent_id'] ?? 0, FILTER_VALIDATE_INT);
         $type = (string) $category['transaction_type'];
         if ($name === '' || strlen($name) > 100 || !in_array($icon, CategoryIcons::names(), true)
@@ -230,10 +231,18 @@ class PersonalFinanceModel
         $safeAmounts = [];
         foreach ($amounts as $categoryId => $amount) {
             $id = filter_var($categoryId, FILTER_VALIDATE_INT);
-            if ($id === false || $id <= 0 || !is_numeric($amount) || (float) $amount < 0) {
+            if ($id === false || $id <= 0) {
+                throw new InvalidArgumentException('Budget categories are invalid.');
+            }
+            if ($amount === '' || $amount === null) {
+                $safeAmounts[$id] = '0';
+                continue;
+            }
+            $cleanAmount = str_replace(['.', ',', ' '], '', (string) $amount);
+            if (!is_numeric($cleanAmount) || (float) $cleanAmount < 0) {
                 throw new InvalidArgumentException('Budget amounts must be zero or greater.');
             }
-            $safeAmounts[$id] = (string) $amount;
+            $safeAmounts[$id] = (string) $cleanAmount;
         }
         $this->repository->saveBudget($employeeId, $month, $safeAmounts);
     }
@@ -294,7 +303,9 @@ class PersonalFinanceModel
         if (!in_array($transactionType, ['income', 'expense'], true)) {
             throw new InvalidArgumentException('Choose either income or expense.');
         }
-        $amount = (string) ($input['amount'] ?? '');
+        $rawAmount = (string) ($input['amount'] ?? '');
+        // Remove dot thousand separators and optional commas/spaces
+        $amount = str_replace(['.', ',', ' '], '', $rawAmount);
         $categoryId = filter_var($input['category_id'] ?? null, FILTER_VALIDATE_INT);
         $occurredOn = (string) ($input['occurred_on'] ?? '');
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $occurredOn);
@@ -375,5 +386,52 @@ class PersonalFinanceModel
         } while (isset($names[$candidate]));
 
         return $candidate;
+    }
+
+    /** @param array<string, mixed> $input */
+    public function updateWallet(int $employeeId, array $input): void
+    {
+        $walletId = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
+        if ($walletId === false || $walletId <= 0) {
+            throw new InvalidArgumentException('Invalid wallet details.');
+        }
+
+        $wallet = $this->repository->findWallet($employeeId, $walletId);
+        if ($wallet === null) {
+            throw new InvalidArgumentException('Wallet was not found.');
+        }
+
+        $name = trim((string) ($input['name'] ?? ''));
+        if ($name === '' || mb_strlen($name) > 100) {
+            throw new InvalidArgumentException('Wallet name must be between 1 and 100 characters.');
+        }
+
+        $existingNames = $this->repository->walletNames($employeeId);
+        foreach ($existingNames as $existingName) {
+            if (strcasecmp($existingName, $name) === 0 && strcasecmp($existingName, (string) $wallet['name']) !== 0) {
+                throw new InvalidArgumentException('A wallet with this name already exists.');
+            }
+        }
+
+        $this->repository->updateWalletName($employeeId, $walletId, $name);
+    }
+
+    public function deleteWallet(int $employeeId, ?string $walletInput): void
+    {
+        $walletId = filter_var($walletInput, FILTER_VALIDATE_INT);
+        if ($walletId === false || $walletId <= 0) {
+            throw new InvalidArgumentException('Invalid wallet.');
+        }
+
+        $wallet = $this->repository->findWallet($employeeId, $walletId);
+        if ($wallet === null) {
+            throw new InvalidArgumentException('Wallet was not found.');
+        }
+
+        if ($this->repository->walletHasTransactions($walletId)) {
+            throw new InvalidArgumentException('Wallet is in use.');
+        }
+
+        $this->repository->deleteWallet($employeeId, $walletId);
     }
 }
