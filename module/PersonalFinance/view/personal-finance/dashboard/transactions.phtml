@@ -27,7 +27,14 @@ $listQuery = array_merge(['tab' => $listTab, 'month' => $month->format('Y-m')], 
                 <span><span <?php if (WalletLabels::key($transaction['wallet_name']) !== null): ?>data-i18n="<?= WalletLabels::key($transaction['wallet_name']) ?>"<?php endif; ?>><?= $this->escapeHtml(WalletLabels::english($transaction['wallet_name'])) ?></span> · <?php if ($transaction['notes']): ?><?= $this->escapeHtml($transaction['notes']) ?><?php else: ?><span data-i18n="finance.noNotes">No notes</span><?php endif; ?></span>
             </div>
             <time datetime="<?= $this->escapeHtmlAttr($transaction['occurred_on']) ?>"><?= $this->escapeHtml(date('d/m/Y', strtotime($transaction['occurred_on']))) ?></time>
-            <strong class="<?= $transaction['transaction_type'] === 'income' ? 'pf-income' : 'pf-expense' ?>"><?= $transaction['transaction_type'] === 'income' ? '+' : '−' ?><?= number_format((float) $transaction['amount'], 0, ',', '.') ?> ₫</strong>
+            <div class="pf-transaction-amount-col">
+                <strong class="<?= $transaction['transaction_type'] === 'income' ? 'pf-income' : 'pf-expense' ?>"><?= $transaction['transaction_type'] === 'income' ? '+' : '−' ?><?= number_format((float) $transaction['amount'], 0, ',', '.') ?> ₫</strong>
+                <?php if (isset($transaction['post_balance'])): ?>
+                    <span class="pf-transaction-post-balance" title="<?= $this->escapeHtmlAttr(number_format((float) $transaction['post_balance'], 0, ',', '.')) ?> ₫">
+                        <span data-i18n="finance.postBalance">Balance</span>: <strong><?= number_format((float) $transaction['post_balance'], 0, ',', '.') ?> ₫</strong>
+                    </span>
+                <?php endif; ?>
+            </div>
             <a class="pf-text-button" href="<?= $this->url('personal-finance', [], ['query' => array_merge($listQuery, ['page' => $dashboard['page'], 'edit' => $transaction['id']])]) ?>" data-i18n="finance.edit">Edit</a>
         </div>
     <?php endforeach; ?>

@@ -28,7 +28,20 @@ $selectedWallet = $dashboard['selectedWallet'];
             <?php foreach ($dashboard['walletFinancials'] as $wallet): ?>
                 <?php $isSelected = $selectedWallet !== null && (int) $selectedWallet['id'] === (int) $wallet['id']; ?>
                 <a class="pf-wallet-card <?= $isSelected ? 'is-selected' : '' ?>" href="<?= $this->url('personal-finance', [], ['query' => ['tab' => 'wallets', 'month' => $month->format('Y-m'), 'wallet' => $wallet['id']]]) ?>" <?= $isSelected ? 'aria-current="true"' : '' ?>>
-                    <span class="pf-wallet-card-top"><span class="pf-wallet-symbol"><?= CategoryIcons::svg('wallet') ?></span><span class="pf-wallet-open"><?= UiIcons::svg('chevron-right') ?></span></span>
+                    <span class="pf-wallet-card-top">
+                        <span class="pf-wallet-symbol"><?= CategoryIcons::svg('wallet') ?></span>
+                        <span class="pf-wallet-card-actions">
+                            <button type="button" class="pf-icon-button pf-wallet-action-btn" data-wallet-edit
+                                data-id="<?= (int) $wallet['id'] ?>"
+                                data-name="<?= $this->escapeHtmlAttr($wallet['name']) ?>"
+                                aria-label="Edit wallet name" data-i18n-aria-label="finance.editWallet"><?= UiIcons::svg('edit') ?></button>
+                            <button type="button" class="pf-icon-button pf-icon-button-danger pf-wallet-action-btn" data-wallet-delete
+                                data-id="<?= (int) $wallet['id'] ?>"
+                                data-name="<?= $this->escapeHtmlAttr($wallet['name']) ?>"
+                                aria-label="Delete wallet" data-i18n-aria-label="finance.deleteWallet"><?= UiIcons::svg('trash') ?></button>
+                            <span class="pf-wallet-open"><?= UiIcons::svg('chevron-right') ?></span>
+                        </span>
+                    </span>
                     <span class="pf-wallet-name" <?php if (WalletLabels::key($wallet['name']) !== null): ?>data-i18n="<?= WalletLabels::key($wallet['name']) ?>"<?php endif; ?>><?= $this->escapeHtml(WalletLabels::english($wallet['name'])) ?></span>
                     <span class="pf-wallet-balance-label" data-i18n="finance.currentBalance">Current balance</span>
                     <strong class="pf-wallet-balance <?= (float) $wallet['balance'] < 0 ? 'pf-expense' : '' ?>"><?= number_format((float) $wallet['balance'], 0, ',', '.') ?> ₫</strong>
@@ -58,10 +71,49 @@ $selectedWallet = $dashboard['selectedWallet'];
         </div>
     </form>
 </dialog>
+
+<dialog id="wallet-edit-modal" class="pf-modal" aria-labelledby="wallet-edit-modal-title">
+    <form method="post" action="<?= $this->url('personal-finance/action', ['action' => 'update-wallet']) ?>">
+        <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr(\Application\Helper\Access::csrfToken()) ?>">
+        <input type="hidden" name="month" value="<?= $month->format('Y-m') ?>">
+        <input type="hidden" name="id" data-edit-wallet-id>
+        <div class="pf-modal-head"><h2 id="wallet-edit-modal-title" data-i18n="finance.editWalletTitle">Edit wallet name</h2><button type="button" class="pf-icon-button" data-modal-close aria-label="Close" data-i18n-aria-label="finance.close">×</button></div>
+        <div class="pf-form-grid">
+            <label class="pf-full"><span data-i18n="finance.walletName">Wallet name</span><input name="name" maxlength="100" data-edit-wallet-name required></label>
+        </div>
+        <div class="pf-modal-actions"><button type="button" class="pf-button pf-button-secondary" data-modal-close data-i18n="finance.cancel">Cancel</button><button class="pf-button pf-button-primary" data-i18n="finance.saveWallet">Save wallet</button></div>
+    </form>
+</dialog>
+
+<dialog id="wallet-delete-modal" class="pf-modal pf-confirm-modal" aria-labelledby="wallet-delete-modal-title">
+    <form method="post" action="<?= $this->url('personal-finance/action', ['action' => 'delete-wallet']) ?>">
+        <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr(\Application\Helper\Access::csrfToken()) ?>">
+        <input type="hidden" name="month" value="<?= $month->format('Y-m') ?>">
+        <input type="hidden" name="id" data-delete-wallet-id>
+        <div class="pf-modal-head"><h2 id="wallet-delete-modal-title" data-i18n="finance.deleteWalletTitle">Delete wallet?</h2><button type="button" class="pf-icon-button" data-modal-close aria-label="Close" data-i18n-aria-label="finance.close">×</button></div>
+        <p data-i18n="finance.deleteWalletDescription">Only wallets without any recorded transactions can be deleted. Wallets with transactions stay protected.</p>
+        <p class="pf-confirm-category" data-delete-wallet-name></p>
+        <div class="pf-modal-actions"><button type="button" class="pf-button pf-button-secondary" data-modal-close data-i18n="finance.cancel">Cancel</button><button class="pf-button pf-button-danger" data-i18n="finance.deleteWalletButton">Delete wallet</button></div>
+    </form>
+</dialog>
+
 <?php if ($selectedWallet !== null): ?>
     <section class="pf-wallet-detail" aria-labelledby="wallet-detail-title">
         <div class="pf-wallet-detail-head">
-            <div><p class="pf-eyebrow" data-i18n="finance.walletActivity">WALLET ACTIVITY</p><h2 id="wallet-detail-title" <?php if (WalletLabels::key($selectedWallet['name']) !== null): ?>data-i18n="<?= WalletLabels::key($selectedWallet['name']) ?>"<?php endif; ?>><?= $this->escapeHtml(WalletLabels::english($selectedWallet['name'])) ?></h2></div>
+            <div>
+                <p class="pf-eyebrow" data-i18n="finance.walletActivity">WALLET ACTIVITY</p>
+                <div class="pf-wallet-detail-title-row">
+                    <h2 id="wallet-detail-title" <?php if (WalletLabels::key($selectedWallet['name']) !== null): ?>data-i18n="<?= WalletLabels::key($selectedWallet['name']) ?>"<?php endif; ?>><?= $this->escapeHtml(WalletLabels::english($selectedWallet['name'])) ?></h2>
+                    <button type="button" class="pf-icon-button" data-wallet-edit
+                        data-id="<?= (int) $selectedWallet['id'] ?>"
+                        data-name="<?= $this->escapeHtmlAttr($selectedWallet['name']) ?>"
+                        aria-label="Edit wallet name" data-i18n-aria-label="finance.editWallet"><?= UiIcons::svg('edit') ?></button>
+                    <button type="button" class="pf-icon-button pf-icon-button-danger" data-wallet-delete
+                        data-id="<?= (int) $selectedWallet['id'] ?>"
+                        data-name="<?= $this->escapeHtmlAttr($selectedWallet['name']) ?>"
+                        aria-label="Delete wallet" data-i18n-aria-label="finance.deleteWallet"><?= UiIcons::svg('trash') ?></button>
+                </div>
+            </div>
             <a class="pf-text-button" href="<?= $this->url('personal-finance', [], ['query' => ['tab' => 'wallets', 'month' => $month->format('Y-m')]]) ?>" data-i18n="finance.backToWallets">All wallets</a>
         </div>
         <?= $this->partial('personal-finance/dashboard/transactions', [

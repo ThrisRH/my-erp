@@ -69,9 +69,14 @@ class PersonalFinanceRepository
     {
         $offset = ($page - 1) * $perPage;
         $statement = $this->connection->prepare(
-            "SELECT transaction.id, transaction.transaction_type, transaction.amount, transaction.occurred_on,
-                    transaction.notes, category.name AS category_name, category.icon AS category_icon,
-                    wallet.name AS wallet_name
+            "SELECT transaction.id, transaction.wallet_id, transaction.transaction_type, transaction.amount,
+                    transaction.occurred_on, transaction.notes, category.name AS category_name,
+                    category.icon AS category_icon, wallet.name AS wallet_name,
+                    SUM(CASE WHEN transaction.transaction_type = 'income' THEN transaction.amount
+                             ELSE -transaction.amount END) OVER (
+                        PARTITION BY transaction.wallet_id
+                        ORDER BY transaction.occurred_on ASC, transaction.id ASC
+                    ) AS post_balance
              FROM personal_finance_transactions AS transaction
              INNER JOIN personal_finance_categories AS category ON category.id = transaction.category_id
              INNER JOIN personal_finance_wallets AS wallet ON wallet.id = transaction.wallet_id
@@ -213,6 +218,53 @@ class PersonalFinanceRepository
         ]);
 
         return (int) $this->connection->lastInsertId();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findWallet(int $employeeId, int $walletId): ?array
+    {
+        $statement = $this->connection->prepare(
+            'SELECT id, employee_id, name, wallet_type FROM personal_finance_wallets
+             WHERE id = :wallet_id AND employee_id = :employee_id'
+        );
+        $statement->execute(['wallet_id' => $walletId, 'employee_id' => $employeeId]);
+        $wallet = $statement->fetch();
+
+        return $wallet === false ? null : $wallet;
+    }
+
+    public function walletHasTransactions(int $walletId): bool
+    {
+        $statement = $this->connection->prepare(
+            'SELECT EXISTS(SELECT 1 FROM personal_finance_transactions WHERE wallet_id = :wallet_id)'
+        );
+        $statement->execute(['wallet_id' => $walletId]);
+
+        return (bool) $statement->fetchColumn();
+    }
+
+    public function updateWalletName(int $employeeId, int $walletId, string $name): void
+    {
+        $statement = $this->connection->prepare(
+            'UPDATE personal_finance_wallets SET name = :name
+             WHERE id = :wallet_id AND employee_id = :employee_id'
+        );
+        $statement->execute([
+            'name' => $name,
+            'wallet_id' => $walletId,
+            'employee_id' => $employeeId,
+        ]);
+    }
+
+    public function deleteWallet(int $employeeId, int $walletId): void
+    {
+        $statement = $this->connection->prepare(
+            'DELETE FROM personal_finance_wallets WHERE id = :wallet_id AND employee_id = :employee_id'
+        );
+        $statement->execute([
+            'wallet_id' => $walletId,
+            'employee_id' => $employeeId,
+        ]);
     }
 
     /** @return list<array<string, mixed>> */
@@ -417,10 +469,16 @@ class PersonalFinanceRepository
             $header = $this->connection->prepare(
                 'INSERT INTO personal_finance_budgets (employee_id, budget_month)
                  VALUES (:employee_id, :budget_month)
-                 ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), updated_at = CURRENT_TIMESTAMP'
+                 ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP'
             );
             $header->execute(['employee_id' => $employeeId, 'budget_month' => $month->format('Y-m-01')]);
-            $budgetId = (int) $this->connection->lastInsertId();
+
+            $idStatement = $this->connection->prepare(
+                'SELECT id FROM personal_finance_budgets WHERE employee_id = :employee_id AND budget_month = :budget_month'
+            );
+            $idStatement->execute(['employee_id' => $employeeId, 'budget_month' => $month->format('Y-m-01')]);
+            $budgetId = (int) $idStatement->fetchColumn();
+
             $this->connection->prepare('DELETE FROM personal_finance_budget_items WHERE budget_id = :budget_id')
                 ->execute(['budget_id' => $budgetId]);
             $insert = $this->connection->prepare(
@@ -464,6 +522,17 @@ class PersonalFinanceRepository
             $month->modify('first day of this month'),
             $month->modify('first day of next month'),
             "CONCAT('Week ', WEEK(occurred_on, 3))"
+        );
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function dailyTotals(int $employeeId, DateTimeImmutable $month): array
+    {
+        return $this->periodTotals(
+            $employeeId,
+            $month->modify('first day of this month'),
+            $month->modify('first day of next month'),
+            'occurred_on'
         );
     }
 
