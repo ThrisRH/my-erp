@@ -19,6 +19,7 @@ $url = function ($tabName, $extra = []) use ($monthValue) {
                 <?= UiIcons::svg('mic') ?>
                 <span data-i18n="finance.voiceInput">Voice input</span>
             </button>
+            <button class="pf-button pf-button-secondary pf-transfer-btn" data-modal-open="wallet-transfer-modal" data-i18n="finance.transferMoney">⇄ Transfer</button>
             <button class="pf-button pf-button-primary" data-modal-open="transaction-modal" data-i18n="finance.addTransaction">+ Add transaction</button>
         <?php endif; ?>
     </div>
@@ -28,6 +29,8 @@ $url = function ($tabName, $extra = []) use ($monthValue) {
     'saved' => ['finance.notice.saved', 'Transaction added.'],
     'updated' => ['finance.notice.updated', 'Transaction updated.'],
     'invalid' => ['finance.notice.invalid', 'Check the transaction details and try again.'],
+    'transfer_saved' => ['finance.notice.transferSaved', 'Transfer completed successfully.'],
+    'transfer_invalid' => ['finance.notice.transferInvalid', 'Check the transfer details and try again.'],
     'budget_saved' => ['finance.notice.budgetSaved', 'Budget saved.'],
     'budget_cloned' => ['finance.notice.budgetCloned', 'Previous month budget copied.'],
     'budget_invalid' => ['finance.notice.budgetInvalid', 'Budget details are invalid.'],
@@ -122,6 +125,67 @@ $url = function ($tabName, $extra = []) use ($monthValue) {
             <button type="button" class="pf-button pf-button-secondary" data-modal-close data-i18n="finance.cancel">Cancel</button>
             <button type="button" class="pf-button pf-button-primary" id="voice-confirm-parse-btn" data-i18n="finance.confirmAndReview">Fill into form</button>
         </div>
+    </dialog>
+    <dialog id="wallet-transfer-modal" class="pf-modal" aria-labelledby="wallet-transfer-modal-title">
+        <form method="post" action="<?= $this->url('personal-finance/action', ['action' => 'transfer-wallet']) ?>">
+            <input type="hidden" name="csrf_token" value="<?= $this->escapeHtmlAttr(\Application\Helper\Access::csrfToken()) ?>">
+            <div class="pf-modal-head">
+                <h2 id="wallet-transfer-modal-title" data-i18n="finance.transferMoneyTitle">Transfer between wallets</h2>
+                <button type="button" class="pf-icon-button" data-modal-close aria-label="Close" data-i18n-aria-label="finance.close">×</button>
+            </div>
+            <p class="pf-subtitle" data-i18n="finance.transferMoneyDescription">Move funds between your wallets without affecting total income or expenses.</p>
+            <input type="hidden" name="month" value="<?= $this->escapeHtmlAttr($monthValue) ?>">
+            <input type="hidden" name="return_tab" value="<?= $this->escapeHtmlAttr($tab) ?>">
+            <?php if ($tab === 'wallets' && ($dashboard['selectedWallet'] ?? null) !== null): ?>
+                <input type="hidden" name="return_wallet" value="<?= (int) $dashboard['selectedWallet']['id'] ?>">
+            <?php endif; ?>
+            <div class="pf-form-grid">
+                <label>
+                    <span data-i18n="finance.sourceWallet">From wallet</span>
+                    <select name="source_wallet_id" id="transfer_source_wallet" required>
+                        <?php foreach ($wallets as $wallet): ?>
+                            <option value="<?= (int) $wallet['id'] ?>" <?= (int) ($dashboard['selectedWallet']['id'] ?? 0) === (int) $wallet['id'] ? 'selected' : '' ?> <?php if (WalletLabels::key($wallet['name']) !== null): ?>data-i18n="<?= WalletLabels::key($wallet['name']) ?>"<?php endif; ?>>
+                                <?= $this->escapeHtml(WalletLabels::english($wallet['name'])) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+                <label>
+                    <span data-i18n="finance.destinationWallet">To wallet</span>
+                    <select name="destination_wallet_id" id="transfer_destination_wallet" required>
+                        <?php
+                            $targetWallets = array_values($wallets);
+                            $defaultDestIndex = count($targetWallets) > 1 ? 1 : 0;
+                        ?>
+                        <?php foreach ($targetWallets as $index => $wallet): ?>
+                            <option value="<?= (int) $wallet['id'] ?>" <?= $index === $defaultDestIndex ? 'selected' : '' ?> <?php if (WalletLabels::key($wallet['name']) !== null): ?>data-i18n="<?= WalletLabels::key($wallet['name']) ?>"<?php endif; ?>>
+                                <?= $this->escapeHtml(WalletLabels::english($wallet['name'])) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+                <label>
+                    <span data-i18n="finance.amount">Amount (₫)</span>
+                    <input name="amount" type="text" inputmode="numeric" data-format-currency required>
+                </label>
+                <label>
+                    <span data-i18n="finance.date">Transaction date</span>
+                    <input id="transfer_occurred_on" name="occurred_on" type="hidden" value="<?= $this->escapeHtmlAttr(date('Y-m-d')) ?>">
+                    <button type="button" class="pf-date-picker" data-date-picker data-target-input="transfer_occurred_on">
+                        <span><?= $this->escapeHtml(date('d/m/Y')) ?></span>
+                        <?= UiIcons::svg('chevron-down') ?>
+                    </button>
+                </label>
+                <label class="pf-full">
+                    <span data-i18n="finance.notes">Notes</span>
+                    <textarea name="notes" maxlength="1000" rows="3" placeholder="Transfer notes (optional)" data-i18n-placeholder="finance.transferNotesPlaceholder"></textarea>
+                </label>
+            </div>
+            <div class="pf-modal-actions">
+                <button type="button" class="pf-button pf-button-secondary" data-modal-close data-i18n="finance.cancel">Cancel</button>
+                <button class="pf-button pf-button-primary" data-i18n="finance.confirmTransfer">Confirm transfer</button>
+            </div>
+        </form>
     </dialog>
     <?php if ($editingTransaction !== null): ?><script>document.addEventListener('DOMContentLoaded', function () { document.getElementById('transaction-modal').showModal(); });</script><?php endif; ?>
 <?php endif; ?>

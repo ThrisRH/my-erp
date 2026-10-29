@@ -12,8 +12,10 @@ $selectedWallet = $dashboard['selectedWallet'];
         <div>
             <p class="pf-eyebrow" data-i18n="finance.walletsEyebrow">YOUR MONEY</p>
             <h2 id="wallets-title" data-i18n="finance.wallets">My wallets</h2>
-            <p class="pf-subtitle" data-i18n="finance.walletsDescription">See where your money sits and how each wallet contributes to spending.</p>
-            <button class="pf-button pf-button-primary pf-wallet-create" type="button" data-modal-open="wallet-modal" data-i18n="finance.createWallet">+ Create wallet</button>
+            <div class="pf-wallet-intro-actions">
+                <button class="pf-button pf-button-primary pf-wallet-create" type="button" data-modal-open="wallet-modal" data-i18n="finance.createWallet">+ Create wallet</button>
+                <button class="pf-button pf-button-secondary pf-wallet-transfer-btn" type="button" data-modal-open="wallet-transfer-modal" data-i18n="finance.transferMoney">⇄ Transfer</button>
+            </div>
         </div>
         <div class="pf-wallet-total">
             <span data-i18n="finance.totalWalletBalance">Total recorded balance</span>
