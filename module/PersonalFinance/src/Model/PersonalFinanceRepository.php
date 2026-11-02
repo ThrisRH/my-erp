@@ -69,25 +69,40 @@ class PersonalFinanceRepository
     {
         $offset = ($page - 1) * $perPage;
         $statement = $this->connection->prepare(
-            "SELECT transaction.id, transaction.wallet_id, transaction.transaction_type, transaction.amount,
+            "SELECT transaction.id, transaction.wallet_id, transaction.transfer_wallet_id, transaction.transaction_type, transaction.amount,
                     transaction.occurred_on, transaction.notes, category.name AS category_name,
                     category.icon AS category_icon, wallet.name AS wallet_name,
-                    SUM(CASE WHEN transaction.transaction_type = 'income' THEN transaction.amount
-                             ELSE -transaction.amount END) OVER (
-                        PARTITION BY transaction.wallet_id
+                    dest_wallet.name AS transfer_wallet_name,
+                    SUM(CASE
+                        WHEN transaction.transaction_type = 'income' THEN transaction.amount
+                        WHEN transaction.transaction_type = 'expense' THEN -transaction.amount
+                        WHEN transaction.transaction_type = 'transfer' AND transaction.wallet_id = :post_bal_wallet_id THEN -transaction.amount
+                        WHEN transaction.transaction_type = 'transfer' AND transaction.transfer_wallet_id = :post_bal_dest_wallet_id THEN transaction.amount
+                        ELSE 0
+                    END) OVER (
+                        PARTITION BY CASE
+                            WHEN :post_bal_is_wallet_filtered = 1 THEN :post_bal_fixed_wallet
+                            ELSE transaction.wallet_id
+                        END
                         ORDER BY transaction.occurred_on ASC, transaction.id ASC
                     ) AS post_balance
              FROM personal_finance_transactions AS transaction
              INNER JOIN personal_finance_categories AS category ON category.id = transaction.category_id
              INNER JOIN personal_finance_wallets AS wallet ON wallet.id = transaction.wallet_id
+             LEFT JOIN personal_finance_wallets AS dest_wallet ON dest_wallet.id = transaction.transfer_wallet_id
              WHERE transaction.employee_id = :employee_id
-               AND (:wallet_id IS NULL OR transaction.wallet_id = :filtered_wallet_id)
+               AND (:wallet_id IS NULL OR transaction.wallet_id = :filtered_wallet_id OR transaction.transfer_wallet_id = :filtered_dest_wallet_id)
              ORDER BY transaction.occurred_on DESC, transaction.id DESC
              LIMIT :limit OFFSET :offset"
         );
         $statement->bindValue(':employee_id', $employeeId, PDO::PARAM_INT);
         $statement->bindValue(':wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $statement->bindValue(':filtered_wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $statement->bindValue(':filtered_dest_wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $statement->bindValue(':post_bal_wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $statement->bindValue(':post_bal_dest_wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $statement->bindValue(':post_bal_is_wallet_filtered', $walletId !== null ? 1 : 0, PDO::PARAM_INT);
+        $statement->bindValue(':post_bal_fixed_wallet', $walletId ?? 0, PDO::PARAM_INT);
         $statement->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
         $statement->execute();
@@ -102,11 +117,13 @@ class PersonalFinanceRepository
     {
         $statement = $this->connection->prepare(
             'SELECT COUNT(*) FROM personal_finance_transactions
-             WHERE employee_id = :employee_id AND (:wallet_id IS NULL OR wallet_id = :filtered_wallet_id)'
+             WHERE employee_id = :employee_id
+               AND (:wallet_id IS NULL OR wallet_id = :filtered_wallet_id OR transfer_wallet_id = :filtered_dest_wallet_id)'
         );
         $statement->bindValue(':employee_id', $employeeId, PDO::PARAM_INT);
         $statement->bindValue(':wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $statement->bindValue(':filtered_wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $statement->bindValue(':filtered_dest_wallet_id', $walletId, $walletId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $statement->execute();
 
         return (int) $statement->fetchColumn();
@@ -155,20 +172,33 @@ class PersonalFinanceRepository
         $previousStart = $month->modify('first day of previous month')->format('Y-m-d');
         $statement = $this->connection->prepare(
             "SELECT wallet.id, wallet.name, wallet.wallet_type,
-                    COALESCE(SUM(CASE WHEN transaction.occurred_on <= CURRENT_DATE()
-                        AND transaction.transaction_type = 'income' THEN transaction.amount
+                    COALESCE(SUM(CASE
                         WHEN transaction.occurred_on <= CURRENT_DATE()
-                        AND transaction.transaction_type = 'expense' THEN -transaction.amount
-                        ELSE 0 END), 0) AS balance,
+                            AND transaction.transaction_type = 'income'
+                            AND transaction.wallet_id = wallet.id THEN transaction.amount
+                        WHEN transaction.occurred_on <= CURRENT_DATE()
+                            AND transaction.transaction_type = 'expense'
+                            AND transaction.wallet_id = wallet.id THEN -transaction.amount
+                        WHEN transaction.occurred_on <= CURRENT_DATE()
+                            AND transaction.transaction_type = 'transfer'
+                            AND transaction.wallet_id = wallet.id THEN -transaction.amount
+                        WHEN transaction.occurred_on <= CURRENT_DATE()
+                            AND transaction.transaction_type = 'transfer'
+                            AND transaction.transfer_wallet_id = wallet.id THEN transaction.amount
+                        ELSE 0
+                    END), 0) AS balance,
                     COALESCE(SUM(CASE WHEN transaction.transaction_type = 'expense'
+                        AND transaction.wallet_id = wallet.id
                         AND transaction.occurred_on >= :current_start
                         AND transaction.occurred_on < :current_end THEN transaction.amount ELSE 0 END), 0) AS current_spending,
                     COALESCE(SUM(CASE WHEN transaction.transaction_type = 'expense'
+                        AND transaction.wallet_id = wallet.id
                         AND transaction.occurred_on >= :previous_start
                         AND transaction.occurred_on < :previous_end THEN transaction.amount ELSE 0 END), 0) AS previous_spending
              FROM personal_finance_wallets AS wallet
              LEFT JOIN personal_finance_transactions AS transaction
-                ON transaction.wallet_id = wallet.id AND transaction.employee_id = wallet.employee_id
+                ON (transaction.wallet_id = wallet.id OR transaction.transfer_wallet_id = wallet.id)
+                AND transaction.employee_id = wallet.employee_id
              WHERE wallet.employee_id = :employee_id
              GROUP BY wallet.id, wallet.name, wallet.wallet_type
              ORDER BY wallet.created_at ASC, wallet.id ASC"
@@ -236,9 +266,15 @@ class PersonalFinanceRepository
     public function walletHasTransactions(int $walletId): bool
     {
         $statement = $this->connection->prepare(
-            'SELECT EXISTS(SELECT 1 FROM personal_finance_transactions WHERE wallet_id = :wallet_id)'
+            'SELECT EXISTS(
+                SELECT 1 FROM personal_finance_transactions
+                WHERE wallet_id = :wallet_id OR transfer_wallet_id = :transfer_wallet_id
+            )'
         );
-        $statement->execute(['wallet_id' => $walletId]);
+        $statement->execute([
+            'wallet_id' => $walletId,
+            'transfer_wallet_id' => $walletId,
+        ]);
 
         return (bool) $statement->fetchColumn();
     }
@@ -390,23 +426,32 @@ class PersonalFinanceRepository
         $statement->execute(['category_id' => $categoryId, 'employee_id' => $employeeId]);
     }
 
-    /** @param array<string, string|int> $transaction */
+    /** @param array<string, string|int|null> $transaction */
     public function addTransaction(array $transaction): void
     {
         $statement = $this->connection->prepare(
             "INSERT INTO personal_finance_transactions
-                (employee_id, wallet_id, category_id, transaction_type, amount, occurred_on, notes)
+                (employee_id, wallet_id, transfer_wallet_id, category_id, transaction_type, amount, occurred_on, notes)
              VALUES
-                (:employee_id, :wallet_id, :category_id, :transaction_type, :amount, :occurred_on, :notes)"
+                (:employee_id, :wallet_id, :transfer_wallet_id, :category_id, :transaction_type, :amount, :occurred_on, :notes)"
         );
-        $statement->execute($transaction);
+        $statement->execute([
+            'employee_id' => $transaction['employee_id'],
+            'wallet_id' => $transaction['wallet_id'],
+            'transfer_wallet_id' => $transaction['transfer_wallet_id'] ?? null,
+            'category_id' => $transaction['category_id'],
+            'transaction_type' => $transaction['transaction_type'],
+            'amount' => $transaction['amount'],
+            'occurred_on' => $transaction['occurred_on'],
+            'notes' => $transaction['notes'] ?? null,
+        ]);
     }
 
     /** @return array<string, mixed>|null */
     public function findTransaction(int $employeeId, int $transactionId): ?array
     {
         $statement = $this->connection->prepare(
-            'SELECT id, wallet_id, category_id, transaction_type, amount, occurred_on, notes
+            'SELECT id, wallet_id, transfer_wallet_id, category_id, transaction_type, amount, occurred_on, notes
              FROM personal_finance_transactions WHERE id = :id AND employee_id = :employee_id'
         );
         $statement->execute(['id' => $transactionId, 'employee_id' => $employeeId]);
@@ -420,11 +465,21 @@ class PersonalFinanceRepository
     {
         $statement = $this->connection->prepare(
             'UPDATE personal_finance_transactions
-             SET wallet_id = :wallet_id, category_id = :category_id, transaction_type = :transaction_type, amount = :amount,
-                 occurred_on = :occurred_on, notes = :notes
+             SET wallet_id = :wallet_id, transfer_wallet_id = :transfer_wallet_id, category_id = :category_id,
+                 transaction_type = :transaction_type, amount = :amount, occurred_on = :occurred_on, notes = :notes
              WHERE id = :id AND employee_id = :employee_id'
         );
-        $statement->execute($transaction);
+        $statement->execute([
+            'id' => $transaction['id'],
+            'employee_id' => $transaction['employee_id'],
+            'wallet_id' => $transaction['wallet_id'],
+            'transfer_wallet_id' => $transaction['transfer_wallet_id'] ?? null,
+            'category_id' => $transaction['category_id'],
+            'transaction_type' => $transaction['transaction_type'],
+            'amount' => $transaction['amount'],
+            'occurred_on' => $transaction['occurred_on'],
+            'notes' => $transaction['notes'] ?? null,
+        ]);
     }
 
     /** @return list<array<string, mixed>> */

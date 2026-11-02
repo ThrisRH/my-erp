@@ -197,6 +197,54 @@ class PersonalFinanceModel
         $this->repository->addTransaction($this->validatedTransaction($employeeId, $input));
     }
 
+    /** @param array<string, mixed> $input */
+    public function transferWallet(int $employeeId, array $input): void
+    {
+        $sourceWalletId = filter_var($input['source_wallet_id'] ?? null, FILTER_VALIDATE_INT);
+        $destinationWalletId = filter_var($input['destination_wallet_id'] ?? null, FILTER_VALIDATE_INT);
+        if ($sourceWalletId === false || $sourceWalletId <= 0
+            || !$this->repository->walletExists($employeeId, $sourceWalletId)
+        ) {
+            throw new InvalidArgumentException('Choose a valid source wallet.');
+        }
+        if ($destinationWalletId === false || $destinationWalletId <= 0
+            || !$this->repository->walletExists($employeeId, $destinationWalletId)
+        ) {
+            throw new InvalidArgumentException('Choose a valid destination wallet.');
+        }
+        if ($sourceWalletId === $destinationWalletId) {
+            throw new InvalidArgumentException('Source and destination wallets must be different.');
+        }
+
+        $rawAmount = (string) ($input['amount'] ?? '');
+        $amount = str_replace(['.', ',', ' '], '', $rawAmount);
+        if (!is_numeric($amount) || (float) $amount <= 0) {
+            throw new InvalidArgumentException('Amount must be greater than zero.');
+        }
+
+        $occurredOn = (string) ($input['occurred_on'] ?? '');
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $occurredOn);
+        if ($date === false || $date->format('Y-m-d') !== $occurredOn) {
+            throw new InvalidArgumentException('Transaction date is invalid.');
+        }
+
+        $notes = trim((string) ($input['notes'] ?? ''));
+        if (strlen($notes) > 1000) {
+            throw new InvalidArgumentException('Notes cannot exceed 1,000 characters.');
+        }
+
+        $this->repository->addTransaction([
+            'employee_id' => $employeeId,
+            'wallet_id' => $sourceWalletId,
+            'transfer_wallet_id' => $destinationWalletId,
+            'category_id' => 1,
+            'transaction_type' => 'transfer',
+            'amount' => number_format((float) $amount, 2, '.', ''),
+            'occurred_on' => $date->format('Y-m-d'),
+            'notes' => $notes === '' ? null : $notes,
+        ]);
+    }
+
     /** @return array<string, mixed>|null */
     public function transactionForEdit(int $employeeId, ?string $transactionId): ?array
     {

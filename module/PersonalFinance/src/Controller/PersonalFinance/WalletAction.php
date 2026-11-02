@@ -36,6 +36,36 @@ class WalletAction
         return $controller->redirect()->toRoute('personal-finance', [], ['query' => $query]);
     }
 
+    public function transfer(PersonalFinanceController $controller, PersonalFinanceModel $model)
+    {
+        if (!$controller->getRequest()->isPost()) {
+            return $controller->redirect()->toRoute('personal-finance', [], ['query' => ['tab' => 'wallets']]);
+        }
+
+        $month = $model->parseMonth($controller->params()->fromPost('month'));
+        $returnTab = (string) $controller->params()->fromPost('return_tab');
+        $tab = in_array($returnTab, ['wallets', 'transactions', 'overview'], true) ? $returnTab : 'wallets';
+        $query = ['tab' => $tab, 'month' => $month->format('Y-m')];
+        $returnWallet = filter_var($controller->params()->fromPost('return_wallet'), FILTER_VALIDATE_INT);
+        if ($returnWallet !== false && $returnWallet > 0) {
+            $query['wallet'] = $returnWallet;
+        }
+
+        $employee = $model->currentEmployee();
+        if ($employee === null) {
+            $query['notice'] = 'no_employee';
+        } else {
+            try {
+                $model->transferWallet((int) $employee['id'], $controller->params()->fromPost());
+                $query['notice'] = 'transfer_saved';
+            } catch (InvalidArgumentException $exception) {
+                $query['notice'] = 'transfer_invalid';
+            }
+        }
+
+        return $controller->redirect()->toRoute('personal-finance', [], ['query' => $query]);
+    }
+
     public function update(PersonalFinanceController $controller, PersonalFinanceModel $model)
     {
         $isAjax = $controller->getRequest()->isXmlHttpRequest()

@@ -40,6 +40,7 @@ class Module
                     'add' => 'finance.transaction.create',
                     'update' => 'finance.transaction.update',
                     'create-wallet' => 'finance.wallet.create',
+                    'transfer-wallet' => 'finance.transaction.create',
                     'add-category' => 'finance.category.create',
                     'update-category' => 'finance.category.create',
                     'delete-category' => 'finance.category.create',

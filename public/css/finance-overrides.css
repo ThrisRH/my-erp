@@ -154,6 +154,13 @@
 .pf-wallet-intro { display: flex; align-items: end; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s2); }
 .pf-wallet-intro h2 { font-size: 24px; margin-bottom: var(--s1); }
 .pf-wallet-create { margin-top: var(--s2); }
+.pf-wallet-intro-actions { display: flex; align-items: center; gap: var(--s1); margin-top: var(--s2); }
+.pf-wallet-transfer-btn, .pf-transfer-btn { display: inline-flex; align-items: center; gap: .35rem; }
+.pf-category-icon-transfer { background: var(--blue-soft); color: var(--blue); }
+.pf-transfer-amount { color: var(--blue); }
+.pf-transfer-badge { display: inline-block; padding: .2rem .55rem; font-size: 11px; font-weight: 600; border-radius: .375rem; background: var(--blue-soft); color: var(--blue); align-self: center; }
+[data-theme="dark"] .pf-category-icon-transfer { background: #1b3046; color: var(--blue); }
+[data-theme="dark"] .pf-transfer-badge { background: #1b3046; color: var(--blue); }
 .pf-wallet-total { display: grid; gap: .25rem; min-width: min(100%, 16rem); }
 .pf-wallet-total span, .pf-wallet-total small { font-size: 12px; color: var(--muted); }
 .pf-wallet-total strong { font-size: 24px; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }

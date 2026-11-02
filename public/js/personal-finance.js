@@ -328,16 +328,16 @@ monthPicker?.addEventListener('click', event => {
 });
 
 const datePicker = document.getElementById('date-picker-modal');
-const dateInput = document.getElementById('occurred_on');
-const dateTrigger = document.querySelector('[data-date-picker]');
-let displayedDate = dateInput?.value ? new Date(`${dateInput.value}T12:00:00`) : new Date();
+let activeDateInput = document.getElementById('occurred_on');
+let activeDateTrigger = document.querySelector('[data-date-picker]');
+let displayedDate = activeDateInput?.value ? new Date(`${activeDateInput.value}T12:00:00`) : new Date();
 
 function formatDateValue(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function renderDatePicker() {
-  if (!datePicker || !dateInput) return;
+  if (!datePicker || !activeDateInput) return;
   const label = datePicker.querySelector('[data-date-label]');
   const grid = datePicker.querySelector('[data-date-grid]');
   if (!label || !grid) return;
@@ -346,7 +346,7 @@ function renderDatePicker() {
   const firstDay = new Date(displayedDate.getFullYear(), displayedDate.getMonth(), 1);
   const daysInMonth = new Date(displayedDate.getFullYear(), displayedDate.getMonth() + 1, 0).getDate();
   const leadingDays = (firstDay.getDay() + 6) % 7;
-  const selectedValue = dateInput.value;
+  const selectedValue = activeDateInput.value;
   const cells = Array.from({ length: leadingDays }, () => {
     const blank = document.createElement('span');
     blank.className = 'pf-date-blank';
@@ -366,11 +366,17 @@ function renderDatePicker() {
   grid.replaceChildren(...cells);
 }
 
-dateTrigger?.addEventListener('click', () => {
-  displayedDate = dateInput?.value ? new Date(`${dateInput.value}T12:00:00`) : new Date();
-  renderDatePicker();
-  datePicker?.showModal();
+document.querySelectorAll('[data-date-picker]').forEach(trigger => {
+  trigger.addEventListener('click', () => {
+    activeDateTrigger = trigger;
+    const targetId = trigger.dataset.targetInput || 'occurred_on';
+    activeDateInput = document.getElementById(targetId);
+    displayedDate = activeDateInput?.value ? new Date(`${activeDateInput.value}T12:00:00`) : new Date();
+    renderDatePicker();
+    datePicker?.showModal();
+  });
 });
+
 datePicker?.addEventListener('click', event => {
   const target = event.target.closest('[data-date-value], [data-date-month]');
   if (!target) return;
@@ -379,10 +385,10 @@ datePicker?.addEventListener('click', event => {
     renderDatePicker();
     return;
   }
-  if (target.dataset.dateValue && dateInput && dateTrigger) {
-    dateInput.value = target.dataset.dateValue;
+  if (target.dataset.dateValue && activeDateInput && activeDateTrigger) {
+    activeDateInput.value = target.dataset.dateValue;
     const selected = new Date(`${target.dataset.dateValue}T12:00:00`);
-    dateTrigger.querySelector('span')?.replaceChildren(selected.toLocaleDateString(currentLocale()));
+    activeDateTrigger.querySelector('span')?.replaceChildren(selected.toLocaleDateString(currentLocale()));
     datePicker.close();
   }
 });
