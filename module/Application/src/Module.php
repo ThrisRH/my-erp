@@ -35,6 +35,18 @@ class Module
                 'home' => 'app.view',
                 'application' => 'app.view',
                 'personal-finance' => 'finance.view',
+                'skill-training' => 'skill-training.use',
+                'skill-training/action' => [
+                    'index' => 'skill-training.use',
+                    'start' => 'skill-training.use',
+                    'question' => 'skill-training.use',
+                    'answer' => 'skill-training.use',
+                    'dispatch' => 'skill-training.use',
+                    'retry' => 'skill-training.use',
+                    'timeout' => 'skill-training.use',
+                    'heartbeat' => 'skill-training.use',
+                    'stop' => 'skill-training.use',
+                ],
                 'personal-finance/action' => [
                     'index' => 'finance.view',
                     'add' => 'finance.transaction.create',

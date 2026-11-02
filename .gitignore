@@ -16,3 +16,15 @@ phpunit.xml
 Dockerfile
 docker-compose.yml
 docker/
+!docker/
+docker/*
+!docker/mysql/
+docker/mysql/*
+!docker/mysql/init/
+docker/mysql/init/*
+!docker/mysql/init/013_skill_training.sql
+!docker/mysql/init/014_skill_training_language.sql
+!docker/mysql/init/015_skill_training_question_fingerprints.sql
+!docker/mysql/init/016_skill_training_question_fingerprint_normalization.sql
+!docker/mysql/init/015_skill_training_question_fingerprints.sql
+!docker/mysql/init/016_skill_training_question_fingerprint_normalization.sql

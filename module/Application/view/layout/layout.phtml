@@ -55,6 +55,7 @@ $isProfile = str_starts_with($path, '/profile');
                 <?php if ($financeUrl !== null): ?>
                     <a href="<?= $financeUrl ?>" <?= $isFinance ? 'aria-current="page"' : '' ?> data-i18n="app.personalFinance">Personal finance</a>
                 <?php endif; ?>
+                <a href="<?= $this->url('skill-training') ?>" <?= str_starts_with($path, '/skill-training') ? 'aria-current="page"' : '' ?> data-i18n="app.skillTraining">Skill training</a>
                 <a href="<?= $this->url('profile') ?>" <?= $isProfile ? 'aria-current="page"' : '' ?> data-i18n="auth.profile">Profile &amp; settings</a>
             </nav>
             <div class="app-preferences" aria-label="Interface preferences">

@@ -20,7 +20,8 @@
     "autoload": {
         "psr-4": {
             "Application\\": "module/Application/src/",
-            "PersonalFinance\\": "module/PersonalFinance/src/"
+            "PersonalFinance\\": "module/PersonalFinance/src/",
+            "SkillTraining\\": "module/SkillTraining/src/"
         }
     },
     "autoload-dev": {
