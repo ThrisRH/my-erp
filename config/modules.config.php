@@ -10,4 +10,5 @@ return [
     'Laminas\Validator',
     'Application',
     'PersonalFinance',
+    'SkillTraining',
 ];

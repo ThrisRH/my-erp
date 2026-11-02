@@ -24,6 +24,8 @@ services:
       DB_DATABASE: ${MYSQL_DATABASE:?Set MYSQL_DATABASE in .env}
       DB_USERNAME: ${MYSQL_USER:?Set MYSQL_USER in .env}
       DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
     depends_on:
       db:
         condition: service_healthy

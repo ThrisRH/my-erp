@@ -81,7 +81,7 @@ class AccountModel
                 'password_hash' => password_hash($password, PASSWORD_DEFAULT),
                 'permissions' => json_encode([
                     'app.view', 'finance.view', 'finance.transaction.create', 'finance.transaction.update',
-                    'finance.wallet.create', 'finance.category.create', 'finance.budget.manage',
+                    'finance.wallet.create', 'finance.category.create', 'finance.budget.manage', 'skill-training.use',
                 ], JSON_THROW_ON_ERROR),
             ]);
             $token = $this->issueToken((int) $this->connection->lastInsertId(), 'verify_email', 1440);

@@ -1,0 +1,110 @@
+<?php
+/** @var Laminas\View\Renderer\PhpRenderer $this */
+
+$this->headTitle('Skill training');
+$this->headLink()->appendStylesheet($this->basePath('css/skill-training.css'));
+$dashboard = $dashboard ?? ['today' => [], 'overall' => [], 'daily' => [], 'history' => [], 'activeSession' => null, 'activeAttempt' => null];
+$today = $dashboard['today'];
+$overall = $dashboard['overall'];
+$daily = $dashboard['daily'];
+$history = $dashboard['history'];
+$activeSession = $dashboard['activeSession'];
+$activeAttempt = $dashboard['activeAttempt'];
+$endpoint = static fn(string $action): string => '/skill-training/' . $action;
+$formatSeconds = static function ($seconds): string {
+    return $seconds === null ? 'N/A' : number_format((float) $seconds, 1) . ' s';
+};
+?>
+<main class="st-page" id="skill-training"
+    data-csrf="<?= $this->escapeHtmlAttr($csrfToken) ?>"
+    data-start-url="<?= $this->escapeHtmlAttr($endpoint('start')) ?>"
+    data-question-url="<?= $this->escapeHtmlAttr($endpoint('question')) ?>"
+    data-dispatch-url="<?= $this->escapeHtmlAttr($endpoint('dispatch')) ?>"
+    data-answer-url="<?= $this->escapeHtmlAttr($endpoint('answer')) ?>"
+    data-retry-url="<?= $this->escapeHtmlAttr($endpoint('retry')) ?>"
+    data-timeout-url="<?= $this->escapeHtmlAttr($endpoint('timeout')) ?>"
+    data-heartbeat-url="<?= $this->escapeHtmlAttr($endpoint('heartbeat')) ?>"
+    data-stop-url="<?= $this->escapeHtmlAttr($endpoint('stop')) ?>"
+    data-session="<?= $this->escapeHtmlAttr(json_encode($activeSession, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG) ?: 'null') ?>"
+    data-attempt="<?= $this->escapeHtmlAttr(json_encode($activeAttempt, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG) ?: 'null') ?>">
+    <header class="st-header">
+        <div>
+            <p class="st-eyebrow" data-i18n="skill.eyebrow">DELIBERATE PRACTICE</p>
+            <h1 data-i18n="skill.title">Skill training</h1>
+            <p class="st-subtitle" data-i18n="skill.subtitle">Build fast recall through short SQL drills.</p>
+        </div>
+        <div class="st-live-indicator" data-session-indicator><span></span><strong data-session-state><?= $activeSession ? 'Session active' : 'Not training' ?></strong></div>
+    </header>
+
+    <section class="st-metrics" aria-label="Training statistics">
+        <article class="st-metric"><span data-i18n="skill.todayAttempts">Today's attempts</span><strong><?= (int) ($today['attempts_today'] ?? 0) ?></strong><small><?php if ($today['daily_change_percent'] === null): ?>N/A<?php else: ?><?= ($today['daily_change_percent'] > 0 ? '+' : '') . $this->escapeHtml((string) $today['daily_change_percent']) ?>% <span data-i18n="skill.vsYesterday">vs yesterday</span><?php endif; ?></small></article>
+        <article class="st-metric"><span data-i18n="skill.avgSpeed">Average response time</span><strong><?= $this->escapeHtml($formatSeconds($today['average_seconds_today'] ?? null)) ?></strong><small data-i18n="skill.today">Today</small></article>
+        <article class="st-metric"><span data-i18n="skill.todayAccuracy">Today's accuracy</span><strong><?= $today['accuracy_today'] === null ? 'N/A' : $this->escapeHtml((string) $today['accuracy_today']) . '%' ?></strong><small data-i18n="skill.threshold">Correct at 80/100 or above</small></article>
+        <article class="st-metric"><span data-i18n="skill.overallAccuracy">Overall accuracy</span><strong><?= $overall['accuracy'] === null ? 'N/A' : $this->escapeHtml((string) $overall['accuracy']) . '%' ?></strong><small data-i18n="skill.evaluatedAnswers">Evaluated answers</small></article>
+    </section>
+
+    <div class="st-layout">
+        <section class="st-panel st-practice-panel">
+            <div class="st-section-heading"><div><p class="st-kicker" data-i18n="skill.sessionSetup">SESSION SETUP</p><h2 data-i18n="skill.practiceSettings">Practice settings</h2></div></div>
+            <form class="st-form" data-training-form>
+                <label class="st-field st-field-wide"><span data-i18n="skill.keywords">Knowledge keywords</span><input name="keywords" maxlength="500" required value="<?= $activeSession ? $this->escapeHtmlAttr($activeSession['keywords']) : '' ?>" placeholder="JOIN, indexes, transactions..." data-i18n-placeholder="skill.keywordsPlaceholder" <?= $activeSession ? 'disabled' : '' ?>></label>
+                <label class="st-field"><span data-i18n="skill.level">Level</span><select name="skill_level" <?= $activeSession ? 'disabled' : '' ?>><option value="basic" <?= ($activeSession['skill_level'] ?? '') === 'basic' ? 'selected' : '' ?> data-i18n="skill.basic">Basic</option><option value="advance" <?= ($activeSession['skill_level'] ?? '') === 'advance' ? 'selected' : '' ?> data-i18n="skill.advance">Advance</option></select></label>
+                <label class="st-field"><span data-i18n="skill.questionLanguage">AI question language</span><select name="training_language" data-training-language <?= $activeSession ? 'disabled' : '' ?>><option value="en" <?= ($activeSession['training_language'] ?? '') === 'en' ? 'selected' : '' ?> data-i18n="skill.languageEnglish">English</option><option value="vi" <?= ($activeSession['training_language'] ?? '') === 'vi' ? 'selected' : '' ?> data-i18n="skill.languageVietnamese">Vietnamese</option></select></label>
+                <label class="st-field"><span data-i18n="skill.minInterval">Minimum interval (minutes)</span><input name="min_interval_minutes" type="number" min="1" max="120" required value="<?= (int) ($activeSession['min_interval_minutes'] ?? 10) ?>" <?= $activeSession ? 'disabled' : '' ?>></label>
+                <label class="st-field"><span data-i18n="skill.maxInterval">Maximum interval (minutes)</span><input name="max_interval_minutes" type="number" min="1" max="120" required value="<?= (int) ($activeSession['max_interval_minutes'] ?? 30) ?>" <?= $activeSession ? 'disabled' : '' ?>></label>
+                <label class="st-field"><span data-i18n="skill.answerDuration">Answer time (seconds)</span><input name="answer_duration_seconds" type="number" min="5" max="600" required value="<?= (int) ($activeSession['answer_duration_seconds'] ?? 40) ?>" <?= $activeSession ? 'disabled' : '' ?>></label>
+                <div class="st-actions st-field-wide">
+                    <button class="st-button st-button-primary" type="submit" data-start-button <?= $activeSession ? 'hidden' : '' ?> data-i18n="skill.start">Start training</button>
+                    <button class="st-button st-button-stop" type="button" data-stop-button <?= $activeSession ? '' : 'hidden' ?> data-i18n="skill.stop">Stop session</button>
+                </div>
+                <div class="st-alert-controls st-field-wide">
+                    <label class="st-sound-toggle"><input type="checkbox" data-sound-enabled checked><span data-i18n="skill.soundEnabled">Sound alert</span></label>
+                    <button class="st-button st-button-secondary" type="button" data-test-sound data-i18n="skill.testSound">Test sound</button>
+                    <span class="st-permission-note" data-notification-state data-i18n="skill.notificationNote">Allow notifications and keep this page open during a session.</span>
+                </div>
+            </form>
+            <div class="st-status-message" role="status" aria-live="polite" data-status-message></div>
+
+            <section class="st-question" data-question-panel <?= $activeAttempt ? '' : 'hidden' ?> aria-live="polite">
+                <?php if ($activeAttempt): ?>
+                    <div class="st-question-meta"><span class="st-type" data-i18n="<?= $activeAttempt['question_type'] === 'theory' ? 'skill.typeTheory' : 'skill.typeExercise' ?>"><?= $activeAttempt['question_type'] === 'theory' ? 'Theory' : 'Exercise' ?></span><span class="st-countdown" data-countdown data-deadline="<?= (int) $activeAttempt['deadline_at'] ?>">--</span></div>
+                    <h3 data-question-text><?= $this->escapeHtml($activeAttempt['question']) ?></h3>
+                    <form data-answer-form>
+                        <input type="hidden" name="session_id" value="<?= (int) $activeSession['id'] ?>">
+                        <input type="hidden" name="attempt_id" value="<?= (int) $activeAttempt['id'] ?>">
+                        <label class="st-field"><span data-i18n="skill.yourAnswer">Your answer</span><textarea name="answer" rows="4" maxlength="10000" placeholder="Write your answer..." data-i18n-placeholder="skill.answerPlaceholder" <?= $activeAttempt['status'] === 'evaluation_failed' ? 'disabled' : '' ?>><?= $this->escapeHtml((string) ($activeAttempt['answer_text'] ?? '')) ?></textarea></label>
+                        <div class="st-actions"><button class="st-button st-button-primary" type="submit" data-submit-answer <?= $activeAttempt['status'] === 'evaluation_failed' ? 'hidden' : '' ?> data-i18n="skill.submit">Submit answer</button><button class="st-button st-button-primary" type="button" data-retry-evaluation <?= $activeAttempt['status'] === 'evaluation_failed' ? '' : 'hidden' ?> data-i18n="skill.retry">Retry evaluation</button><span class="st-late-label" data-late-label <?= (int) $activeAttempt['is_late'] ? '' : 'hidden' ?> data-i18n="skill.late">Time is up. You can still submit.</span></div>
+                    </form>
+                <?php endif; ?>
+            </section>
+            <section class="st-feedback" data-feedback <?= !empty($activeAttempt['score']) ? '' : 'hidden' ?>></section>
+        </section>
+
+        <section class="st-panel st-progress-panel">
+            <div class="st-section-heading"><div><p class="st-kicker" data-i18n="skill.progress">PROGRESS</p><h2 data-i18n="skill.dailyProgress">Daily progress</h2></div><span class="st-range-label" data-i18n="skill.last14Days">Last 14 days</span></div>
+            <div class="st-day-chart" role="list" aria-label="Daily training accuracy and volume">
+                <?php foreach ($daily as $day): $attempts = max(0, (int) $day['attempts']); $accuracy = (int) $day['evaluated_count'] === 0 ? 0 : (int) round(((int) $day['correct_count'] / (int) $day['evaluated_count']) * 100); $height = max(8, $accuracy); ?>
+                    <div class="st-day" role="listitem" title="<?= $this->escapeHtml($day['training_date']) ?> · <?= $attempts ?> attempts · <?= (int) $day['evaluated_count'] === 0 ? 'N/A' : (int) round(((int) $day['correct_count'] / (int) $day['evaluated_count']) * 100) . '%' ?> accuracy">
+                        <span class="st-day-accuracy"><?= $attempts ?></span>
+                        <span class="st-day-bar" style="--bar-height: <?= $height ?>%"><i></i></span>
+                        <span class="st-day-label"><?= $this->escapeHtml(date('m/d', strtotime($day['training_date']))) ?> · <?= $accuracy ?>%</span>
+                    </div>
+                <?php endforeach; ?>
+                <?php if ($daily === []): ?><p class="st-empty" data-i18n="skill.noProgress">Your daily progress will appear here after your first question.</p><?php endif; ?>
+            </div>
+            <div class="st-overall-speed"><span data-i18n="skill.overallSpeed">Overall average response time</span><strong><?= $this->escapeHtml($formatSeconds($overall['average_seconds'] ?? null)) ?></strong></div>
+        </section>
+    </div>
+
+    <section class="st-panel st-history-panel">
+        <div class="st-section-heading"><div><p class="st-kicker" data-i18n="skill.review">REVIEW</p><h2 data-i18n="skill.recentAttempts">Recent attempts</h2></div></div>
+        <?php if ($history === []): ?><p class="st-empty" data-i18n="skill.noAttempts">No practice attempts yet.</p><?php else: ?>
+            <div class="st-table-wrap"><table class="st-history"><thead><tr><th data-i18n="skill.date">Date</th><th data-i18n="skill.question">Question</th><th data-i18n="skill.answer">Answer</th><th data-i18n="skill.score">Score</th><th data-i18n="skill.speed">Response</th><th data-i18n="skill.result">Result</th></tr></thead><tbody>
+                <?php foreach ($history as $attempt): ?>
+                    <tr><td><?= $this->escapeHtml(date('Y-m-d H:i', strtotime($attempt['generated_at']))) ?></td><td><span class="st-type st-type-small"><?= $this->escapeHtml(ucfirst($attempt['question_type'])) ?></span><?= $this->escapeHtml($attempt['question']) ?></td><td><?= $this->escapeHtml((string) ($attempt['answer_text'] ?? '')) ?></td><td><?= $attempt['score'] === null ? 'N/A' : (int) $attempt['score'] . '/100' ?></td><td><?= $this->escapeHtml($formatSeconds($attempt['response_seconds'])) ?><?= (int) $attempt['is_late'] ? ' · late' : '' ?></td><td><span class="st-result st-result-<?= $this->escapeHtmlAttr($attempt['status']) ?>"><?= $this->escapeHtml(ucwords(str_replace('_', ' ', $attempt['status']))) ?></span><?php if (!empty($attempt['verdict'])): ?><small><?= $this->escapeHtml($attempt['verdict']) ?></small><?php endif; ?><?php if (!empty($attempt['explanation'])): ?><details class="st-explanation"><summary data-i18n="skill.explanation">Explanation</summary><p><?= $this->escapeHtml($attempt['explanation']) ?></p></details><?php endif; ?></td></tr>
+                <?php endforeach; ?>
+            </tbody></table></div>
+        <?php endif; ?>
+    </section>
+</main>
+<script src="<?= $this->basePath('js/skill-training.js') ?>" defer></script>
